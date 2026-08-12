@@ -1,0 +1,111 @@
+name: 发布到 Typst Universe (GitCode)
+
+# 对应 GitHub 的 publish-typst.yml
+# 触发条件:推送 v* 标签 或 手动触发
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "要发布的版本号(如 0.3.1,不带 v 前缀)"
+        required: true
+        default: "0.3.1"
+
+permissions:
+  repository: read
+
+jobs:
+  submit-pr:
+    name: 校验并打包模板
+    runs-on: [ubuntu-latest, x64, small]
+    steps:
+      - name: Checkout 模板
+        uses: checkout
+
+      - name: 解析版本号
+        id: ver
+        run: |
+          if [[ "${ATOMGIT_REF}" == refs/tags/* ]]; then
+            echo "version=${ATOMGIT_REF_NAME#v}" >> "$ATOMGIT_OUTPUT"
+          else
+            echo "version=${{ inputs.version }}" >> "$ATOMGIT_OUTPUT"
+          fi
+          echo "解析到的版本号: ${{ steps.ver.outputs.version }}"
+
+      - name: 校验 typst.toml 版本号一致
+        run: |
+          EXPECTED="${{ steps.ver.outputs.version }}"
+          ACTUAL=$(grep -E '^version' typst.toml | head -1 | sed -E 's/.*=\s*"([^"]+)".*/\1/')
+          echo "typst.toml version = $ACTUAL, 期望 = $EXPECTED"
+          if [[ "$ACTUAL" != "$EXPECTED" ]]; then
+            echo "::error::typst.toml 中的版本号($ACTUAL)与触发版本($EXPECTED)不一致,请先更新 typst.toml"
+            exit 1
+          fi
+
+      - name: 打包模板
+        run: |
+          DEST="/tmp/pkg"
+          mkdir -p "$DEST"
+          # 复制包根文件:typst.toml / lib.typ / README.md / LICENSE
+          cp typst.toml lib.typ README.md LICENSE "$DEST/"
+          # 复制资源目录:img(背景图等)、languages(语言配置)、example(示例)
+          cp -r img languages example "$DEST/"
+          rm -f "$DEST/.gitignore" 2>/dev/null || true
+          echo "=== 包内容 ==="
+          ls -la "$DEST"
+          tar -czf "/tmp/underhell-${{ steps.ver.outputs.version }}.tar.gz" -C /tmp pkg
+
+      - name: 上传包 (Artifact)
+        uses: upload-artifact
+        with:
+          name: underhell-template-${{ steps.ver.outputs.version }}
+          path: /tmp/underhell-${{ steps.ver.outputs.version }}.tar.gz
+
+      # ---- GitHub 专属流程:提交 PR 到 typst/packages ----
+      # typst/packages 托管在 GitHub,需在 GitCode 项目设置中添加密钥
+      #   TYPST_PACKAGES_TOKEN = 拥有 CrossDark/packages fork 写权限的 GitHub PAT
+      # 未配置密钥时跳过,仅保留打包与 Artifact 上传。
+      - name: 提交 PR 到 typst/packages (GitHub)
+        if: ${{ secrets.TYPST_PACKAGES_TOKEN != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.TYPST_PACKAGES_TOKEN }}
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          set -euo pipefail
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          # 克隆 fork 并同步上游
+          git clone --depth 1 "https://x-access-token:${GH_TOKEN}@github.com/CrossDark/packages.git" /tmp/packages
+          cd /tmp/packages
+          git remote add upstream https://github.com/typst/packages.git
+          git fetch --depth 1 upstream main
+          git checkout -b "add-underhell-${VERSION}" upstream/main
+
+          # 放置包文件
+          DEST="/tmp/packages/packages/preview/underhell/${VERSION}"
+          mkdir -p "$DEST"
+          cp "$ATOMGIT_WORKSPACE/typst.toml" "$ATOMGIT_WORKSPACE/lib.typ" "$ATOMGIT_WORKSPACE/README.md" "$ATOMGIT_WORKSPACE/LICENSE" "$DEST/"
+          cp -r "$ATOMGIT_WORKSPACE/img" "$ATOMGIT_WORKSPACE/languages" "$ATOMGIT_WORKSPACE/example" "$DEST/"
+
+          # 提交并推送
+          git add -A
+          git commit -m "Add underhell@${VERSION}" || echo "无变更可提交(可能已存在)"
+          git push -f origin "add-underhell-${VERSION}"
+
+          # 创建 PR(已存在则跳过)
+          BODY="$ATOMGIT_WORKSPACE/.github/pr-body.md"
+          if [ -f "$BODY" ]; then
+            sed "s/VERSION_PLACEHOLDER/${VERSION}/g" "$BODY" > /tmp/pr-body.md
+          else
+            echo "Add underhell@${VERSION}" > /tmp/pr-body.md
+          fi
+          curl -s -o /tmp/pr.json -w "%{http_code}" \
+            -X POST "https://api.github.com/repos/typst/packages/pulls" \
+            -H "Authorization: token ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -d "{\"title\":\"Add underhell@${VERSION}\",\"head\":\"CrossDark:add-underhell-${VERSION}\",\"base\":\"main\",\"body\":$(python3 -c 'import json,sys;print(json.dumps(open("/tmp/pr-body.md").read()))')}"
+          echo
+          echo "PR 创建响应: $(head -c 200 /tmp/pr.json)"
