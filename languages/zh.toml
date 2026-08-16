@@ -20,7 +20,9 @@ roleplay = "角色扮演提示"
 
 # === 自定义字体配置 ===
 [fonts]
-# 定义正文字体（支持列表，自动回退）
-body = ["寒蟬錦書宋", "Source Han Sans SC", "Noto Sans CJK SC", "Microsoft YaHei"]
-# 定义标题字体
-header = ["DuanNingMaoBiXiaoKai", "Source Han Sans SC", "Noto Sans CJK SC", "Microsoft YaHei"]
+# 定义正文字体（支持列表，自动回退）:霞鹜文楷等宽
+body = ["LXGW WenKai Mono", "LXGW WenKai", "PingFang SC", "Hiragino Sans GB"]
+# 定义标题字体:段宁毛笔小楷
+header = ["DuanNingMaoBiXiaoKai", "LXGW WenKai", "PingFang SC", "Hiragino Sans GB"]
+# 定义斜体字体:等距更紗黑體(Sarasa Mono SC)
+italic = ["Sarasa Mono SC", "Sarasa Gothic SC", "LXGW WenKai Mono", "PingFang SC", "Hiragino Sans GB"]

@@ -24,9 +24,66 @@
 #let language = state("language", toml("languages/en.toml"))
 
 // ------------------------------------------------------------
-// uhmodule:文档主模板 / Main document template
-// 用作 #show: uhmodule.with(...) 应用整篇文档样式
-// Used via #show: uhmodule.with(...) to apply document-wide styling
+// 名词系统 / Nomenclature system
+// 每个核心概念用一个"元素"(即普通名词系统的名称)作为 ID。
+// 普通名词系统直接读取 ID 的值本身,无需在 CSV 中为其存行;
+// 其他名词系统(如"别名"、"academic")为同一元素提供不同名词。
+// 数据以 CSV 存储(如 文档/名词系统.csv),列: id, system, term,
+// 由文档通过 csv() 读取后传入 地狱之下模板(nomen-data:) 注入。
+// 并非每个系统都涵盖所有元素;当前系统缺失某元素时自动回退到普通名词(即 ID)。
+// Each core concept is identified by an "元素" (the common-system name).
+// The 普通 system reads the ID value directly, so it needs no rows in the CSV;
+// other systems (e.g. "别名", "academic") provide different terms for the
+// same element. Data is stored as CSV (e.g. 文档/名词系统.csv), columns:
+// id, system, term, read by the document with csv() and injected via
+// 地狱之下模板(nomen-data:). Not every system covers all elements; missing
+// elements fall back to the common term (the ID) automatically.
+// ------------------------------------------------------------
+
+// 名词系统状态:当前系统名,默认普通系统 "普通";数据数组
+// Nomenclature state: current system name (default "普通") and data array
+#let nomen-state = state("nomen", "普通")
+#let nomen-data-state = state("nomen-data", none)
+
+// 在数据中查找 ID 在当前系统中的名词;未找到返回 none
+// Look up the term for an ID in a given system within data; none if absent
+#let _nomen-lookup(id, system, data) = {
+  if data == none {
+    return none
+  }
+  for row in data {
+    if row.at(0) == id and row.at(1) == system {
+      return row.at(2)
+    }
+  }
+  none
+}
+
+// 查询某元素在当前名词系统下的名词。
+// 普通系统("普通")直接返回元素名(id)本身;
+// 其他系统查表,缺失时回退到普通名词(即 id)。
+// Query the term for an element in the current system.
+// The 普通 system just returns the element name (id) itself;
+// other systems look it up, falling back to the id when missing.
+#let 元素(id) = {
+  context {
+    let cur = nomen-state.get()
+    let data = nomen-data-state.get()
+    let t = _nomen-lookup(id, cur, data)
+    if t == none { id } else { t }
+  }
+}
+
+// 设置当前名词系统 / Set the current nomenclature system
+#let set-nomen(name) = nomen-state.update(name)
+
+// 设置名词系统数据(CSV 读取结果)/ Set nomenclature data (csv() result)
+#let set-nomen-data(data) = nomen-data-state.update(data)
+
+// ------------------------------------------------------------
+// 地狱之下模板:文档主模板 / Main document template
+// 用作 #show: 地狱之下模板.with(...) 应用整篇文档样式
+// Used via #show: 地狱之下模板.with(...) to apply document-wide styling
 //
 // 参数 / Parameters:
 //   title        - 文档标题(封面大标题)/ Document title (cover headline)
@@ -54,8 +111,20 @@
 //                  Screen mode: A5 single column, keeps background & colors, narrow margins,
 //                  smaller font size. For reading on phones/tablets.
 //                  Defaults to reading --input screen=true at compile time
+//   nomen        - 名词系统名称,决定 #nomen-term() 的取词来源
+//                  默认自动读取编译时输入变量 --input nomen=xxx,缺省为 "普通"
+//                  文档也可显式传入 nomen: "xxx" 覆盖
+//                  Nomenclature system name; selects which system #nomen-term() draws from.
+//                  Defaults to reading --input nomen=xxx at compile time,
+//                  falling back to "普通". Documents can override with nomen: "xxx"
+//   nomen-data   - 名词系统数据文件位置,由文档在初始化时传入 csv() 读取结果。
+//                  所有名词系统集中在同一个 CSV(列: id, system, term);
+//                  如 csv("名词系统.csv")。缺省不注入。
+//                  Nomenclature data file location: pass the csv() result here,
+//                  all systems live in one CSV (columns: id, system, term),
+//                  e.g. csv("名词系统.csv"). Not injected by default.
 // ------------------------------------------------------------
-#let uhmodule(title: "",
+#let 地狱之下模板(title: "",
               author: "",
               subtitle: "",
               cover: none,
@@ -68,6 +137,8 @@
               lang: "en",
               print: "print" in sys.inputs and sys.inputs.print == "true",
               screen: "screen" in sys.inputs and sys.inputs.screen == "true",
+              nomen: if "nomen" in sys.inputs and sys.inputs.nomen != "" { sys.inputs.nomen } else { "普通" },
+              nomen-data: none,
   body) = {
   // 设置文档元数据 / Set document metadata
   set document(author: author, title: title)
@@ -90,10 +161,19 @@
   let header-fonts = if "header" in fonts-cfg { fonts-cfg.header } else { none }
   // 构造 text() 的命名参数包,无配置时为空字典 / Build named args for text(); empty dict if none
   let header-font-args = if header-fonts != none { (font: header-fonts) } else { (:) }
+  // 斜体字体列表(支持回退)/ Italic font list (with fallback)
+  let italic-fonts = if "italic" in fonts-cfg { fonts-cfg.italic } else { none }
 
   // 非 en 时更新语言状态 / Update language state when not English
   if lang != "en" {
     language.update(lang-toml)
+  }
+
+  // 设置当前名词系统 / Set the current nomenclature system
+  nomen-state.update(nomen)
+  // 注入名词系统数据(若有)/ Inject nomenclature data if provided
+  if nomen-data != none {
+    nomen-data-state.update(nomen-data)
   }
 
   // 打印模式:标题用纯黑而非深红,省墨且对比度高;小屏模式保留深红
@@ -260,8 +340,8 @@
 
   // 应用正文字体(来自语言 TOML,优先级低于用户在文章中 set text(font: ...) 的自定义)
   // Apply body fonts from language TOML; user's #set text(font: ...) in body overrides this
-  // 注意:set 不能放在 if 块内(词法作用域不延伸到块外),改用参数字典构造后一次性 set
-  // Note: set inside an if block is lexically scoped and won't leak out; build args first
+  // 注意:set/show 不能放在 if 块内(词法作用域不延伸到块外),改用参数字典构造后一次性 set
+  // Note: set/show inside an if block is lexically scoped and won't leak out; build args first
   // 小屏模式使用适中字号 / Screen mode uses moderate font size
   let actual-font-size = if screen { 13pt } else { font-size }
   let text-args = (size: actual-font-size, lang: lang, fill: black)
@@ -269,6 +349,15 @@
     text-args.font = body-fonts
   }
   set text(..text-args)
+
+  // 斜体使用独立字体(如等距更紗黑體),优先级低于用户自定义
+  // Italic text uses its own font (e.g. Sarasa Mono SC); user rules take precedence
+  let italic-args = if italic-fonts != none {
+    (style: "italic", font: italic-fonts)
+  } else {
+    (style: "italic",)
+  }
+  show emph: set text(..italic-args)
 
   body
 
@@ -325,7 +414,7 @@
 #let breakoutbox(title, contents) = [#place(auto, float: true)[
   #set par(first-line-indent: 0em, spacing: 0.6em)
   #box(inset: 10pt, width: 100%, stroke: (top: 2pt, bottom: 2pt), fill: rgb("#ddeedd"))[
-    #if title.len() > 0 {
+    #if title != none {
       align(left, smallcaps[*#title*])
     }
 

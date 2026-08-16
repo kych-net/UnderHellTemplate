@@ -16,7 +16,7 @@
 
 ## 基本用法
 
-`uhmodule` 模板会为你初始化文档。你可能需要预先指定的参数如下:
+`地狱之下模板` 模板会为你初始化文档。你可能需要预先指定的参数如下:
 
 - `title`:文档标题,将以文字形式渲染。若封面图已含标题则可省略。
 - `subtitle`:封面底部的副标题/标语。
@@ -28,11 +28,65 @@
 - `paper`:默认(合理地)为 `a4`(美国用户可改用 `us-letter`)。
 - `add-title`:(布尔)是否在首页打印标题。例如若你自制了封面图,可设为 false。
 - `bg`:内容页背景。`"default"`(羊皮纸,默认),`none` 为适合打印的白色背景,或传入 `image(...)` 使用自定义背景。
-- `lang`:用于 `statbox` 和 `npcbox` 中本地化标签(Armor Class、Description 等)的双字母语言代码。默认为 `"en"`。仓库内置 `"it"`;可参照 `languages/en.toml` 在 `languages/<code>.toml` 添加自己的语言。
+- `lang`:用于 `statbox` 和 `npcbox` 中本地化标签(Armor Class、Description 等)的双字母语言代码。默认为 `"en"`。仓库内置 `"it"`;可参照 `languages/en.toml` 在 `languages/<code>.toml` 添加自己的语言。语言文件的 `[fonts]` 段可配置字体:`body`(正文)、`header`(标题)、`italic`(斜体)。
+- `nomen`:名词系统名称(详见下文"名词系统")。默认为编译时 `--input nomen=xxx` 的值,缺省为 `"普通"`。文档可显式传入覆盖。
+- `nomen-data`:名词系统数据文件的 `csv()` 读取结果(详见下文"名词系统")。
 
 之后,几乎所有需求都可用基础 Typst 标记完成。模板还提供以下便捷函数:
 
 `uhbrand`:以小型大写字母打印品牌名 "地狱之下"。
+
+## 名词系统
+
+名词系统让同一核心概念(如"黑白怪物")在不同设定版本中拥有不同叫法,便于同一份文档输出多种"世界观名词"。
+
+**核心概念用"元素"标识**:即普通名词系统的名称(如 `怪动植物` 代表黑白怪物)。**普通名词系统直接读取 ID 的值本身**,因此 CSV 中只需为其他名词系统存行。**所有名词系统集中存放在同一个 CSV 文件**(列:`id, system, term`),由文档在模板初始化时通过 `nomen-data` 传入。**并非每个系统都涵盖所有元素**,当前系统缺失某元素时自动回退到普通名词(即 ID)。别名通过名为 `别名` 的名词系统提供。
+
+示例 `名词系统.csv`:
+
+```csv
+id,system,term
+怪动植物,别名,黑白怪物
+超级系统,academic,生物能量超级系统
+```
+
+在文档中使用:
+
+```typst
+#import "../模板/lib.typ": *
+
+#show: 地狱之下模板.with(
+  // ...
+  nomen-data: csv("名词系统.csv"),   // 全部系统集中在同一 CSV
+)
+```
+
+文中用 `#元素("怪动植物")` 取词:
+
+```typst
+#元素("怪动植物")   // 普通系统下返回"怪动植物"(即 ID 本身)
+#set-nomen("别名")
+#元素("怪动植物")   // 别名系统下渲染"黑白怪物"
+```
+
+注意:正文中直接写 `#元素(...)`(不要在正文中用 `[` `]` 包裹,否则会渲染字面方括号);函数参数位置(如 `#uhtab(...)`、`#breakoutbox(...)`、`name: ...`)可用 `[...]` 包裹成 content:
+
+```typst
+#breakoutbox([#元素("天堂卫星")的能力], [...])
+#uhtab([#元素("热量循环系统")], [...])
+
+#statbox((name: [#元素("怪动植物")], ...))
+```
+
+编译时选择名词系统(缺省为"普通"):
+
+```sh
+typst compile --input nomen=academic main.typ out.pdf
+# 或
+make nomen NOMEN=academic
+```
+
+文档内也可动态切换:`#set-nomen("academic")`;`nomen-data` 未传入时,`#元素(...)` 直接返回传入的名称本身。
 
 `uhtab(name, columns: (1fr, 4fr), breakable: false, ..contents)`:常规格式的表格。默认 2 列、比例 1:4;若 `breakable` 为 `true`,可跨页拆分。
 

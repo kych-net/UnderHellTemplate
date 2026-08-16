@@ -1,6 +1,6 @@
-#import "@preview/underhell:0.1.0": *
+#import "../lib.typ": *
 
-#show: uhmodule.with(
+#show: 地狱之下模板.with(
   title: "A Date with Destiny",
   subtitle: "A one-shot adventure for 4 players of levels 1-4 - with dinosaurs",
   author: "Colin Jacobs",
@@ -8,7 +8,21 @@
   paper: "a4",
   logo: image("img/GenericLogo.png", width: 13%),
   fancy-author: true,
+  nomen-data: csv("../../文档/名词系统.csv"),
 )
+
+== Nomenclature demo
+
+Elements are named by their 普通-system term (e.g. 怪动植物). #元素("怪动植物") = 怪动植物 (formal). Switch to the "别名" system for the alias:
+
+#set-nomen("别名")
+Alias system: #元素("怪动植物"), #元素("怪动物"), #元素("地狱") (no alias, falls back to 普通)
+
+#set-nomen("academic")
+Academic: #元素("超级系统") (怪动植物 missing there, falls back to 普通: #元素("怪动植物"))
+
+#set-nomen("普通")
+Back to 普通: #元素("怪动植物")
 
 #outline(title: "Table of Contents\n")
 #colbreak()
