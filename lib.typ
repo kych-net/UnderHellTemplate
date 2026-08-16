@@ -351,11 +351,14 @@
   set text(..text-args)
 
   // 斜体使用独立字体(如等距更紗黑體),优先级低于用户自定义
-  // Italic text uses its own font (e.g. Sarasa Mono SC); user rules take precedence
+  // Italic text uses its own font (e.g. Sarasa Mono SC); user rules take precedence.
+  // 注意:仅设置 font,不显式设 style——emph 自带 italic,显式 style 会干扰字体选变体
+  // Note: set only font, not style; emph already carries italic, an explicit style
+  // would break font-variant selection (e.g. pick Regular instead of Italic).
   let italic-args = if italic-fonts != none {
-    (style: "italic", font: italic-fonts)
+    (font: italic-fonts)
   } else {
-    (style: "italic",)
+    (:)
   }
   show emph: set text(..italic-args)
 
