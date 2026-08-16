@@ -50,7 +50,7 @@ Back to 普通: #元素("怪动植物")
 
 == Adventure awaits!
 
-#uhbrand#super("TM") is a fictional world building game.
+#品牌#super("TM") is a fictional world building game.
 #lorem(180) OK!
 
 == A location
@@ -69,13 +69,13 @@ Back to 普通: #元素("怪动植物")
 
 #lorem(85)
 
-#uhtab("Random occurences", [*d10*], [*Result*], [1], [A tingling in the extremities], [2-8], [Nothing interesting occurs], [10], [All the PCs burst into flame])
+#表格("Random occurences", [*d10*], [*Result*], [1], [A tingling in the extremities], [2-8], [Nothing interesting occurs], [10], [All the PCs burst into flame])
 
 #lorem(150)
 
 *And now we want a page with a big image at the top.*
 
-#topfig(image("img/dragongold.png", width: 140%))
+#顶部图(image("img/dragongold.png", width: 140%))
 
 And here it is.
 #lorem(100)
@@ -89,18 +89,18 @@ And here it is.
 
 
 And more here!
-#breakoutbox("Look here!")[#lorem(44)]
+#提示框("Look here!")[#lorem(44)]
 
 #lorem(390)
 
 // #lorem(402)
-#breakoutbox("Something to note")[#lorem(133)]
+#提示框("Something to note")[#lorem(133)]
 #lorem(300)
 
-#bottomfig(image("img/swordtorn.png", width: 140%))
+#底部图(image("img/swordtorn.png", width: 140%))
 
 #lorem(400)
-#statbox((
+#属性框((
   name: "Monster",
   description: [Large monstrosity, neutral evil],
   ac: [20 (natural armor)],
@@ -131,7 +131,7 @@ And more here!
 
 = Notable NPCs
 
-#npcbox((
+#人物框((
   name: "Old Maggie of the Marsh",
   race: [Human],
   class: [Hedge witch],
@@ -146,7 +146,7 @@ And more here!
   ],
 ))
 
-#npcbox((
+#人物框((
   name: "Captain Bren Holloway",
   race: [Half-elf],
   class: [Veteran],
@@ -159,7 +159,7 @@ And more here!
 
 = Spells
 
-#spell((
+#法术((
   name: "Dancing Legs",
   spell-type: [2nd level evocation],
   properties: (
@@ -172,7 +172,7 @@ And more here!
   )
 )
 
-#spell((
+#法术((
   name: "Clapping Hands",
   spell-type: [2nd level evocation],
   properties: (

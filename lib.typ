@@ -6,7 +6,7 @@
 // 主题色定义 / Theme color definitions
 #let darkred = rgb("#540808")     // 深红色:用于标题、强调线条 / Dark red: for headings, accent lines
 #let darkyellow = rgb("#fcba03")  // 暗黄色:用于二级标题下划线 / Dark yellow: for level-2 heading underline
-#let uhbrand = smallcaps("地狱之下")  // 品牌文本(小型大写)/ Brand text (smallcaps)
+#let 品牌 = smallcaps("地狱之下")  // 品牌文本(小型大写)/ Brand text (smallcaps)
 
 // 页脚内容生成器 / Footer content generator
 // 第 1 页之后显示页脚图片与页码 / Show footer image and page number after page 1
@@ -374,7 +374,7 @@
 //   breakable - 是否允许跨页 / Whether the block can break across pages
 //   contents  - 表格内容(按行展开)/ Table contents (spread as rows)
 // ------------------------------------------------------------
-#let uhtab(name, columns: (1fr, 4fr), breakable: false, ..contents) = [
+#let 表格(name, columns: (1fr, 4fr), breakable: false, ..contents) = [
   #block(breakable: breakable)[
   // 标题:小型大写 + 1.3em 字号 / Title: smallcaps, 1.3em size
   *#smallcaps(text(size: 1.3em)[#name])*
@@ -400,10 +400,10 @@
 // ------------------------------------------------------------
 
 // topfig:在父块顶部浮动放置图片 / Float figure at top of parent block
-#let topfig(figure) = [ #place(top + center, dy: -7em, dx:0em, float: true, scope: "parent", clearance: -6em, figure) ]
+#let 顶部图(figure) = [ #place(top + center, dy: -7em, dx:0em, float: true, scope: "parent", clearance: -6em, figure) ]
 // bottomfig:在父块底部浮动放置图片 / Float figure at bottom of parent block
 // 先清除页脚以避免重叠 / Suppress footer first to avoid overlap
-#let bottomfig(figure) = [ // Suppress the footer first
+#let 底部图(figure) = [ // Suppress the footer first
   #context footer.update("")
   #place(bottom + center, dy: 7em, dx:0em, float: true, scope: "parent", clearance: -6em, figure)
 ]
@@ -414,7 +414,7 @@
 //   title    - 标题(可空)/ Title (can be empty)
 //   contents - 框内内容 / Box contents
 // ------------------------------------------------------------
-#let breakoutbox(title, contents) = [#place(auto, float: true)[
+#let 提示框(title, contents) = [#place(auto, float: true)[
   #set par(first-line-indent: 0em, spacing: 0.6em)
   #box(inset: 10pt, width: 100%, stroke: (top: 2pt, bottom: 2pt), fill: rgb("#ddeedd"))[
     #if title != none {
@@ -431,7 +431,7 @@
 
 // bonus:根据属性值计算修正值字符串 / Compute modifier string from ability score
 // 规则:(score - 10) / 2 向下取整,>=10 为正 / Rule: floor((score-10)/2), "+" if >= 10
-#let bonus(i) = {
+#let 修正值(i) = {
   let b = ""
   if i >= 10 {
     b = "+"
@@ -440,15 +440,15 @@
 }
 
 // stat-to-str:格式化为 "值 (修正)" / Format as "score (modifier)"
-#let stat-to-str(a) = {
-  (str(a) + " (" + bonus(int(a)) + ")")
+#let 属性转串(a) = {
+  (str(a) + " (" + 修正值(int(a)) + ")")
 }
 
 // ------------------------------------------------------------
 // stats-table:六维属性表(STR/DEX/CON/INT/WIS/CHA)/ Six-ability stats table
 //   stats - 字典,键为属性名,值为数值 / Dict of ability name -> score
 // ------------------------------------------------------------
-#let stats-table(stats) = {
+#let 属性表(stats) = {
   let content = ()
   // 第一行:属性名(深红、加粗)/ First row: ability names (dark red, bold)
   for k in stats.keys() {
@@ -456,7 +456,7 @@
   }
   // 第二行:数值(修正)/ Second row: score (modifier)
   for k in stats.values() {
-    content.push([#text(fill: black, stat-to-str(k))])
+    content.push([#text(fill: black, 属性转串(k))])
   }
   // 6 列等宽,无描边,居中对齐 / 6 equal columns, no stroke, centered
   table(stroke: none, columns: (1fr, 1fr, 1fr, 1fr, 1fr, 1fr), inset: 0pt, row-gutter: 5pt, align: center, ..content)
@@ -467,7 +467,7 @@
 //   header   - 标题文本(三级标题)/ Title (level-3 heading)
 //   contents - 框内正文 / Box body content
 // ------------------------------------------------------------
-#let boxed-text(header, contents) = [
+#let 侧标框(header, contents) = [
   #box(inset: 10pt, fill: rgb("#fefff9"), stroke: (right: 1pt + darkyellow, left: 1pt + darkyellow), width: 100%)[
     #set par(spacing: .6em, first-line-indent: 1.5em)
     #set text(size: 0.83em)
@@ -483,7 +483,7 @@
 //           以及可选的 actions/reactions/limited_usage/equip/legendary_act
 //           Dict with creature info and optional action sections
 // ------------------------------------------------------------
-#let statbox(stats) = [
+#let 属性框(stats) = [
   #box(inset: 12pt, fill: white, stroke: 1pt, width: 100%)[
     #set par(spacing: .6em)
     #set text(size: 0.83em)
@@ -502,7 +502,7 @@
 
     #line(stroke: 2pt + darkred, length: 100%)
     // 六维属性表 / Six-ability stats table
-    #stats-table(stats.stats)
+    #属性表(stats.stats)
     #line(stroke: 2pt + darkred, length: 100%)
 
     // 技能块(感知、语言、挑战等级等)/ Skill block (senses, languages, challenge, etc.)
@@ -546,7 +546,7 @@
 //         以及 description/background/roleplay(可选,标签使用语言配置)
 //         Dict with NPC info; description/background/roleplay use localized labels
 // ------------------------------------------------------------
-#let npcbox(npc) = [
+#let 人物框(npc) = [
   #box(inset: 12pt, fill: white, stroke: 1pt, width: 100%)[
     #set par(spacing: .6em)
     #set text(size: 0.83em)
@@ -567,7 +567,7 @@
 
     // 可选的六维属性表 / Optional six-ability stats table
     #if "stats" in npc.keys() {
-      stats-table(npc.stats)
+      属性表(npc.stats)
       line(stroke: 2pt + darkred, length: 100%)
     }
 
@@ -596,7 +596,7 @@
 //   spl - 字典,包含 name/spell-type/properties(属性列表)/description
 //         Dict with name, spell-type, properties (list), description
 // ------------------------------------------------------------
-#let spell(spl) = [
+#let 法术(spl) = [
   #set par(spacing: .6em, first-line-indent: 0em)
   #heading(outlined: false, level: 3, spl.name)
 
@@ -631,7 +631,7 @@
 // 也可通过 include 引入附录文件 / Or include an appendix file:
 //   #appendix[#include "附录文件.typ"]
 // ------------------------------------------------------------
-#let appendix(title: "附录", numbering-fmt: "A.1.", body) = [
+#let 附录(title: "附录", numbering-fmt: "A.1.", body) = [
   // 切换标题编号为字母格式(附录 A, A.1, A.1.1 ...)/
   // Switch heading numbering to letter format
   #set heading(numbering: numbering-fmt)
@@ -648,8 +648,8 @@
 // trademarks:版权声明 / Copyright notice
 // 用于文档末尾的版权声明 / Used at the end of the document for copyright notice
 // ------------------------------------------------------------
-#let trademarks = text(size: 0.9em, style: "italic")[
-  #uhbrand 及其相关标识均为本项目原创内容。本作品中的所有设定、角色、地名及世界观均为虚构,如有雷同纯属巧合。
+#let 版权声明 = text(size: 0.9em, style: "italic")[
+  #品牌 及其相关标识均为本项目原创内容。本作品中的所有设定、角色、地名及世界观均为虚构,如有雷同纯属巧合。
 
 All original material in this work is copyright by the respective authors and published under the MIT License.
 ]
