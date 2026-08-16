@@ -26,18 +26,18 @@
 // ------------------------------------------------------------
 // 名词系统 / Nomenclature system
 // 每个核心概念用一个"元素"(即普通名词系统的名称)作为 ID。
-// 普通名词系统直接读取 ID 的值本身,无需在 CSV 中为其存行;
-// 其他名词系统(如"别名"、"academic")为同一元素提供不同名词。
-// 数据以 CSV 存储(如 文档/名词系统.csv),列: id, system, term,
+// 普通名词系统直接读取 ID 的值本身;其他名词系统为同一元素提供不同名词。
+// 数据以 CSV(宽表)存储(如 文档/名词系统.csv):首行是各名词系统名,
+// 首列是元素 id,单元格为该元素在对应系统下的名词,无名词则留空。
 // 由文档通过 csv() 读取后传入 地狱之下模板(nomen-data:) 注入。
-// 并非每个系统都涵盖所有元素;当前系统缺失某元素时自动回退到普通名词(即 ID)。
+// 当前系统缺失某元素时自动回退到普通名词(即 ID)。
 // Each core concept is identified by an "元素" (the common-system name).
-// The 普通 system reads the ID value directly, so it needs no rows in the CSV;
-// other systems (e.g. "别名", "academic") provide different terms for the
-// same element. Data is stored as CSV (e.g. 文档/名词系统.csv), columns:
-// id, system, term, read by the document with csv() and injected via
-// 地狱之下模板(nomen-data:). Not every system covers all elements; missing
-// elements fall back to the common term (the ID) automatically.
+// The 普通 system reads the ID value directly; other systems provide
+// alternative terms. Data is a wide-format CSV (e.g. 文档/名词系统.csv):
+// header row = system names, first column = element ids, cells = the term
+// under that system (empty if none), read by the document with csv() and
+// injected via 地狱之下模板(nomen-data:). Missing elements fall back to
+// the common term (the ID) automatically.
 // ------------------------------------------------------------
 
 // 名词系统状态:当前系统名,默认普通系统 "普通";数据数组
@@ -47,13 +47,32 @@
 
 // 在数据中查找 ID 在当前系统中的名词;未找到返回 none
 // Look up the term for an ID in a given system within data; none if absent
+// 数据为宽表:首行是表头(列名),首列是元素 id,单元格为该元素在对应系统中的名词(可为空)。
+// Data is a wide table: header row = system names, first column = element ids,
+// cells = that element's term under each system (may be empty).
 #let _nomen-lookup(id, system, data) = {
-  if data == none {
+  if data == none or data.len() == 0 {
     return none
   }
-  for row in data {
-    if row.at(0) == id and row.at(1) == system {
-      return row.at(2)
+  // 确定系统所在列索引 / Find the column index of the system
+  let header = data.at(0)
+  let col = none
+  for j in range(header.len()) {
+    if header.at(j) == system {
+      col = j
+      break
+    }
+  }
+  if col == none {
+    return none
+  }
+  // 逐行查找元素 id / Scan rows for the element id
+  for row in data.slice(1) {
+    if row.len() > col and row.at(0) == id {
+      let term = row.at(col)
+      if term != "" {
+        return term
+      }
     }
   }
   none
@@ -203,6 +222,41 @@
   )[
     #box(width: 100%, inset: (bottom: 4pt), stroke: (bottom: if print { 0pt } else { 1pt + darkyellow }))[#smallcaps(it)]
   ])
+
+  // 三级标题样式:深红色、小一号、无下划线 / Level-3 heading: darkred, slightly smaller
+  show heading.where(level: 3): it => block(text(
+    ..header-font-args,
+    size: 1.3em,
+    fill: heading-fill,
+    weight: "regular",
+  )[#smallcaps(it)])
+
+  // 四级标题样式:左色条 + 深红色 / Level-4 heading: left bar accent
+  show heading.where(level: 4): it => block[
+    #box(
+      inset: (left: 8pt),
+      stroke: (left: if print { 0pt } else { 3pt + darkyellow }),
+      width: 100%,
+    )[#text(..header-font-args, size: 1.15em, fill: heading-fill, weight: "regular")[#it]]
+  ]
+
+  // 五级标题样式:左侧圆点(垂直居中)+ 深红斜体 / Level-5 heading: left dot (vertically centered) + darkred italic
+  show heading.where(level: 5): it => block[
+    #grid(
+      columns: (auto, 1fr),
+      column-gutter: 0.6em,
+      align: (center, left),
+      [#box(circle(radius: 1.5pt, fill: heading-fill))],
+      text(..header-font-args, size: 1em, fill: heading-fill, weight: "regular", style: "italic")[#it],
+    )
+  ]
+
+  // 六级标题样式:深红、小号、前置 — 符号 / Level-6 heading: darkred, small, "—" prefix
+  show heading.where(level: 6): it => block[
+    #text(..header-font-args, size: 0.95em, fill: heading-fill, weight: "regular")[
+      — #it
+    ]
+  ]
 
   // 正文背景图:打印模式禁用;小屏/普通模式保留 / Body background
   let bg-img = if print or bg == none {
