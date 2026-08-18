@@ -81,15 +81,26 @@
 // 查询某元素在当前名词系统下的名词。
 // 普通系统("普通")直接返回元素名(id)本身;
 // 其他系统查表,缺失时回退到普通名词(即 id)。
+// 返回的文本以深红色标出,默认使用标题字体(header),可用 font 参数覆盖。
 // Query the term for an element in the current system.
 // The 普通 system just returns the element name (id) itself;
 // other systems look it up, falling back to the id when missing.
-#let 元素(id) = {
+// The result is rendered in dark red, defaulting to the header font,
+// overridable via the font parameter.
+#let _元素字体 = state("元素字体", none)
+
+#let 元素(id, font: none) = {
   context {
     let cur = nomen-state.get()
     let data = nomen-data-state.get()
     let t = _nomen-lookup(id, cur, data)
-    if t == none { id } else { t }
+    let term = if t == none { id } else { t }
+    let f = if font != none { font } else { _元素字体.get() }
+    let args = (fill: darkred)
+    if f != none {
+      args.font = f
+    }
+    text(..args)[#term]
   }
 }
 
@@ -180,6 +191,8 @@
   let header-fonts = if "header" in fonts-cfg { fonts-cfg.header } else { none }
   // 构造 text() 的命名参数包,无配置时为空字典 / Build named args for text(); empty dict if none
   let header-font-args = if header-fonts != none { (font: header-fonts) } else { (:) }
+  // 元素默认使用标题字体 / Elements default to the header font
+  _元素字体.update(header-fonts)
   // 斜体字体列表(支持回退)/ Italic font list (with fallback)
   let italic-fonts = if "italic" in fonts-cfg { fonts-cfg.italic } else { none }
 
