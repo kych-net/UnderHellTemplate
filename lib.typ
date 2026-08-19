@@ -440,7 +440,7 @@
 //   breakable - 是否允许跨页 / Whether the block can break across pages
 //   contents  - 表格内容(按行展开)/ Table contents (spread as rows)
 // ------------------------------------------------------------
-#let 表格(name, columns: (1fr, 4fr), breakable: false, ..contents) = [
+#let 表格(name, columns: (1fr, 4fr), breakable: true, ..contents) = [
   #block(breakable: breakable)[
   // 标题:小型大写 + 1.3em 字号 / Title: smallcaps, 1.3em size
   *#smallcaps(text(size: 1.3em)[#name])*
@@ -476,20 +476,25 @@
 
 
 // ------------------------------------------------------------
-// breakoutbox:浮动信息框(顶部+底部边框)/ Floating callout box
+// breakoutbox:信息框(顶部+底部边框)/ Callout box
 //   title    - 标题(可空)/ Title (can be empty)
 //   contents - 框内内容 / Box contents
+//   breakable - 是否允许跨页,默认开启 / Whether the block can break across pages
 // ------------------------------------------------------------
-#let 提示框(title, contents) = [#place(auto, float: true)[
+#let 提示框(title, contents, breakable: true) = block(
+  breakable: breakable,
+  inset: 10pt,
+  width: 100%,
+  stroke: (top: 2pt, bottom: 2pt),
+  fill: rgb("#ddeedd"),
+)[
   #set par(first-line-indent: 0em, spacing: 0.6em)
-  #box(inset: 10pt, width: 100%, stroke: (top: 2pt, bottom: 2pt), fill: rgb("#ddeedd"))[
-    #if title != none {
-      align(left, smallcaps[*#title*])
-    }
+  #if title != none {
+    align(left, smallcaps[*#title*])
+  }
 
-    #align(left)[#contents]
-  ]
-]]
+  #align(left)[#contents]
+]
 
 // ------------------------------------------------------------
 // 属性值换算工具 / Ability modifier utilities
@@ -533,15 +538,20 @@
 // boxed-text:带黄色侧边的文本框 / Text box with yellow side strokes
 //   header   - 标题文本(三级标题)/ Title (level-3 heading)
 //   contents - 框内正文 / Box body content
+//   breakable - 是否允许跨页,默认开启 / Whether the block can break across pages
 // ------------------------------------------------------------
-#let 侧标框(header, contents) = [
-  #box(inset: 10pt, fill: rgb("#fefff9"), stroke: (right: 1pt + darkyellow, left: 1pt + darkyellow), width: 100%)[
-    #set par(spacing: .6em, first-line-indent: 1.5em)
-    #set text(size: 0.83em)
-    #heading(outlined: false, level: 3, header)
-    #v(0.5em)
-    #contents
-  ]
+#let 侧标框(header, contents, breakable: true) = block(
+  breakable: breakable,
+  inset: 10pt,
+  fill: rgb("#fefff9"),
+  stroke: (right: 1pt + darkyellow, left: 1pt + darkyellow),
+  width: 100%,
+)[
+  #set par(spacing: .6em, first-line-indent: 1.5em)
+  #set text(size: 0.83em)
+  #heading(outlined: false, level: 3, header)
+  #v(0.5em)
+  #contents
 ]
 
 // ------------------------------------------------------------
@@ -550,9 +560,10 @@
 //           以及可选的 actions/reactions/limited_usage/equip/legendary_act
 //   theme - 可选主题字典,定制配色:title(标题栏底色,可渐变)/accent(强调色)/
 //           soft(浅底色)/border(边框色);缺省为经典深红风格
+//   breakable - 是否允许跨页,默认开启 / Whether the block can break across pages
 //           Dict with creature info and optional action sections
 // ------------------------------------------------------------
-#let 属性框(stats, theme: (:)) = {
+#let 属性框(stats, theme: (:), breakable: true) = {
   // 主题解析:缺省为经典深红/白底 / Resolve theme, default classic darkred
   let 标题色 = theme.at("title", default: darkred)
   let 强调色 = theme.at("accent", default: darkred)
@@ -562,7 +573,7 @@
   // 标题栏文字色:默认白色,可经 theme.title-fg 覆盖 / Title text color, default white
   let 标题文字色 = theme.at("title-fg", default: white)
 
-  box(inset: 0pt, fill: 浅底色, stroke: 1pt + 边框色, width: 100%)[
+  block(breakable: breakable, inset: 0pt, fill: 浅底色, stroke: 1pt + 边框色, width: 100%)[
     // 标题栏横幅 / Title banner
     box(
       width: 100%,
@@ -643,12 +654,18 @@
 //   npc - 字典,包含 name/race/class/alignment/stats(可选)
 //         以及 description/background/roleplay(可选,标签使用语言配置)
 //         Dict with NPC info; description/background/roleplay use localized labels
+//   breakable - 是否允许跨页,默认开启 / Whether the block can break across pages
 // ------------------------------------------------------------
-#let 人物框(npc) = [
-  #box(inset: 12pt, fill: white, stroke: 1pt, width: 100%)[
-    #set par(spacing: .6em)
-    #set text(size: 0.83em)
-    #heading(outlined: false, level: 3, npc.name)
+#let 人物框(npc, breakable: true) = block(
+  breakable: breakable,
+  inset: 12pt,
+  fill: white,
+  stroke: 1pt,
+  width: 100%,
+)[
+  #set par(spacing: .6em)
+  #set text(size: 0.83em)
+  #heading(outlined: false, level: 3, npc.name)
 
     // 种族/职业/阵营(斜体,逗号分隔)/ Race/class/alignment (italic, comma-joined)
     #{
@@ -686,7 +703,6 @@
         }
       }
     }
-  ]
 ]
 
 // ------------------------------------------------------------
