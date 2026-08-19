@@ -111,6 +111,46 @@
 #let set-nomen-data(data) = nomen-data-state.update(data)
 
 // ------------------------------------------------------------
+// 名词总表:以表格展示所有元素在各名词系统下的名称
+// Nomenclature table: show every element's term under each system
+//   data   - 可选,名词系统数据(宽表 CSV);缺省从模板状态读取
+//            Optional nomenclature data (wide CSV); defaults to template state
+//   用法 / Usage:
+//     #名词总表()      # 使用模板注入的数据 / use injected data
+// ------------------------------------------------------------
+#let 名词总表(data: none) = {
+  context {
+    let d = if data == none { nomen-data-state.get() } else { data }
+    if d == none or d.len() == 0 {
+      return none
+    }
+    let header = d.at(0)
+    // 首列是元素 id,其后各列是名词系统 / First column is id, rest are systems
+    let systems = header.slice(1)
+    // 数据行数组:每个元素一行;系统列取该列名词,空则显示 — / Data array
+    let rows = ()
+    // 表头行(浅灰底加粗)/ Header row
+    rows.push(table.header([*元素*], ..systems.map(s => text(weight: "bold", s))))
+    for r in d.slice(1) {
+      if r.len() > 0 {
+        rows.push(r.at(0))
+        for j in range(1, r.len()) {
+          let cell = r.at(j)
+          rows.push(if cell == "" or cell == none { text(fill: rgb("#888888"))[—] } else { cell })
+        }
+      }
+    }
+    table(
+      columns: (1fr,) + systems.map(_ => 1fr),
+      stroke: (x: 0.5pt + rgb("#bbbbbb"), y: 0.5pt + rgb("#bbbbbb")),
+      inset: 8pt,
+      align: center,
+      ..rows,
+    )
+  }
+}
+
+// ------------------------------------------------------------
 // 地狱之下模板:文档主模板 / Main document template
 // 用作 #show: 地狱之下模板.with(...) 应用整篇文档样式
 // Used via #show: 地狱之下模板.with(...) to apply document-wide styling
