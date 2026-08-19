@@ -720,3 +720,26 @@
 
 All original material in this work is copyright by the respective authors and published under the MIT License.
 ]
+
+// ------------------------------------------------------------
+// 世界纲要:单栏居中页 / World Overview: single-column centered page
+// ------------------------------------------------------------
+#let 世界纲要(body) = [
+  #page(columns: 1, margin: (left: 30mm, right: 30mm, top: 30mm, bottom: 30mm))[
+    #align(center)[
+      #set text(size: 1.1em)
+      #body
+    ]
+  ]
+]
+
+// ------------------------------------------------------------
+// 目录:单栏居中页 / Table of contents: single-column centered page
+// ------------------------------------------------------------
+#let 目录() = [
+  #page(columns: 1, margin: (left: 30mm, right: 30mm, top: 30mm, bottom: 30mm))[
+    #align(center)[
+      #outline(title: text(size: 1.6em, fill: darkred, weight: "bold")[目录])
+    ]
+  ]
+]
