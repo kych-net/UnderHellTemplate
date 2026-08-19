@@ -208,15 +208,14 @@
     nomen-data-state.update(nomen-data)
   }
 
-  // 打印模式:标题用纯黑而非深红,省墨且对比度高;小屏模式保留深红
-  // Print mode: headings in pure black; screen mode keeps dark red
-  let heading-fill = if print { black } else { darkred }
+  // 标题始终使用深红(打印/普通/小屏均保持红色) / Headings always darkred
+  let heading-fill = darkred
 
-  // 一级标题样式:小型大写、深红色(打印模式为黑色)/ Level-1 heading: smallcaps
+  // 一级标题样式:小型大写、深红(打印模式也为深红)/ Level-1 heading: smallcaps, always darkred
   show heading.where(level: 1): it => block(text(
     ..header-font-args,
     size: 1.5em,
-    fill: heading-fill,
+    fill: darkred,
     weight: "regular",
     // style: "italic",
     smallcaps(it),
