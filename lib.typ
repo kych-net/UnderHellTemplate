@@ -513,12 +513,13 @@
 // ------------------------------------------------------------
 // stats-table:六维属性表(STR/DEX/CON/INT/WIS/CHA)/ Six-ability stats table
 //   stats - 字典,键为属性名,值为数值 / Dict of ability name -> score
+//   color - 属性名的强调色,默认深红 / Accent color for ability names
 // ------------------------------------------------------------
-#let 属性表(stats) = {
+#let 属性表(stats, color: darkred) = {
   let content = ()
-  // 第一行:属性名(深红、加粗)/ First row: ability names (dark red, bold)
+  // 第一行:属性名(强调色、加粗)/ First row: ability names (accent, bold)
   for k in stats.keys() {
-    content.push([#text(fill: darkred, weight: 700, k)])
+    content.push([#text(fill: color, weight: 700, k)])
   }
   // 第二行:数值(修正)/ Second row: score (modifier)
   for k in stats.values() {
@@ -547,64 +548,95 @@
 // statbox:怪物/生物属性框 / Monster/creature stat block
 //   stats - 字典,包含 name/description/ac/hp/speed/stats/skillblock/traits
 //           以及可选的 actions/reactions/limited_usage/equip/legendary_act
+//   theme - 可选主题字典,定制配色:title(标题栏底色,可渐变)/accent(强调色)/
+//           soft(浅底色)/border(边框色);缺省为经典深红风格
 //           Dict with creature info and optional action sections
 // ------------------------------------------------------------
-#let 属性框(stats) = [
-  #box(inset: 12pt, fill: white, stroke: 1pt, width: 100%)[
-    #set par(spacing: .6em)
-    #set text(size: 0.83em)
-    #heading(outlined: false, level: 3, stats.name)
+#let 属性框(stats, theme: (:)) = {
+  // 主题解析:缺省为经典深红/白底 / Resolve theme, default classic darkred
+  let 标题色 = theme.at("title", default: darkred)
+  let 强调色 = theme.at("accent", default: darkred)
+  let 浅底色 = theme.at("soft", default: white)
+  let 边框色 = theme.at("border", default: darkred)
 
-    // 描述(斜体)/ Description (italic)
-    _ #stats.description _
+  // 标题栏文字色:默认白色,可经 theme.title-fg 覆盖 / Title text color, default white
+  let 标题文字色 = theme.at("title-fg", default: white)
 
-    #line(stroke: 2pt + darkred, length: 100%)
-    // AC/HP/Speed 标签使用当前语言配置 / AC/HP/Speed labels from current language
-    #context [
-      #text(fill: darkred)[*#language.get().stats.ac*] #stats.ac\
-      #text(fill: darkred)[*#language.get().stats.hp*] #stats.hp\
-      #text(fill: darkred)[*#language.get().stats.speed*] #stats.speed\
+  box(inset: 0pt, fill: 浅底色, stroke: 1pt + 边框色, width: 100%)[
+    // 标题栏横幅 / Title banner
+    box(
+      width: 100%,
+      inset: (x: 12pt, y: 7pt),
+      fill: if type(标题色) == color { 标题色 } else { gradient.linear(..标题色) },
+    )[
+      #set text(fill: 标题文字色)
+      #heading(outlined: false, level: 3, stats.name)
     ]
 
-    #line(stroke: 2pt + darkred, length: 100%)
-    // 六维属性表 / Six-ability stats table
-    #属性表(stats.stats)
-    #line(stroke: 2pt + darkred, length: 100%)
+    #pad(x: 12pt, y: 8pt)[
+      #set par(spacing: .6em)
+      #set text(size: 0.83em)
 
-    // 技能块(感知、语言、挑战等级等)/ Skill block (senses, languages, challenge, etc.)
-    #for skill in stats.skillblock {
-      [#text(fill: darkred)[*#skill.at(0)*] #skill.at(1)\ ]
-    }
-    #line(stroke: 2pt + darkred, length: 100%)
-    // 特性 / Traits
-    #for trait in stats.traits {
-      [ _*#trait.at(0).*_ #trait.at(1)]
-    }
+      // 描述(斜体)/ Description (italic)
+      _ #stats.description _
 
-    // 动作段落(标签来自语言配置)/ Action sections (labels from language config)
-    #context {
-      let sections = (
-        language.get().sections.actions,
-        language.get().sections.reactions,
-        language.get().sections.limited_usage,
-        language.get().sections.equip,
-        language.get().sections.legendary_act,
-      )
-      for section in sections {
-        // 仅当 stats 中存在该段落时渲染 / Render only if section exists in stats
-        if section in stats.keys() {
-          block[
-            #set par(spacing: 1em)
-            #text(size: 1.3em, fill: darkred)[#box(width:100%, inset: (bottom: 3pt), stroke: (bottom: 1pt+darkyellow))[#smallcaps(section)]]
-            #for action in stats.at(section) {
-              [_*#action.at(0).*_ #action.at(1) \ ]
-            }
-          ]
+      #line(stroke: 1.5pt + 强调色, length: 100%)
+      // AC/HP/Speed 标签使用当前语言配置 / AC/HP/Speed labels from current language
+      #context [
+        #text(fill: 强调色)[*#language.get().stats.ac*] #stats.ac\
+        #text(fill: 强调色)[*#language.get().stats.hp*] #stats.hp\
+        #text(fill: 强调色)[*#language.get().stats.speed*] #stats.speed\
+      ]
+
+      #line(stroke: 1.5pt + 强调色, length: 100%)
+      // 六维属性表 / Six-ability stats table
+      #属性表(stats.stats, color: 强调色)
+      #line(stroke: 1.5pt + 强调色, length: 100%)
+
+      // 技能块(感知、语言、挑战等级等)/ Skill block (senses, languages, challenge, etc.)
+      #for skill in stats.skillblock {
+        [#text(fill: 强调色)[*#skill.at(0)*] #skill.at(1)\ ]
+      }
+      #line(stroke: 1.5pt + 强调色, length: 100%)
+      // 特性 / Traits (表格形式)
+      #if stats.traits.len() > 0 {
+        table(
+          stroke: none,
+          columns: (1fr, 4fr),
+          inset: (x: 8pt, y: 4pt),
+          align: (left, left),
+          ..stats.traits.map(trait => (
+            [#text(fill: 强调色, weight: 700)[#trait.at(0)]],
+            trait.at(1),
+          )).flatten(),
+        )
+      }
+
+      // 动作段落(标签来自语言配置)/ Action sections (labels from language config)
+      #context {
+        let sections = (
+          language.get().sections.actions,
+          language.get().sections.reactions,
+          language.get().sections.limited_usage,
+          language.get().sections.equip,
+          language.get().sections.legendary_act,
+        )
+        for section in sections {
+          // 仅当 stats 中存在该段落时渲染 / Render only if section exists in stats
+          if section in stats.keys() {
+            block[
+              #set par(spacing: 1em)
+              #text(size: 1.3em, fill: 强调色)[#box(width:100%, inset: (bottom: 3pt), stroke: (bottom: 1pt+darkyellow))[#smallcaps(section)]]
+              #for action in stats.at(section) {
+                [_*#text(fill: 强调色)[#action.at(0)].*_ #action.at(1) \ ]
+              }
+            ]
+          }
         }
       }
-    }
+    ]
   ]
-]
+}
 
 // ------------------------------------------------------------
 // npcbox:NPC 信息框 / NPC info block
