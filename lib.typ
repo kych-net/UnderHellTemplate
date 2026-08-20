@@ -811,15 +811,30 @@ All original material in this work is copyright by the respective authors and pu
 
 // ------------------------------------------------------------
 // 世界纲要:单栏居中页 / World Overview: single-column centered page
+//   display - 是否显示:显式传入 true/false 可覆盖;
+//            缺省时:打印模式(print)隐藏,其余模式(普通/小屏)显示;
+//            亦可用编译时输入 --input 纲要=true/false 覆盖
+//            Default: hidden in print mode, shown otherwise; override with display
 // ------------------------------------------------------------
-#let 世界纲要(body) = [
-  #page(columns: 1, margin: (left: 30mm, right: 30mm, top: 30mm, bottom: 30mm))[
-    #align(center)[
+#let 世界纲要(body, display: none) = {
+  let show-p = if display != none {
+    display
+  } else if "纲要" in sys.inputs {
+    sys.inputs.纲要 == "true"
+  } else if "print" in sys.inputs {
+    sys.inputs.print != "true"
+  } else {
+    true
+  }
+  if show-p {
+    page(columns: 1, margin: (left: 30mm, right: 30mm, top: 30mm, bottom: 30mm))[
       #set text(size: 1.1em)
+      #show heading: set align(center)
+      #show par: set align(center)
       #body
     ]
-  ]
-]
+  }
+}
 
 // ------------------------------------------------------------
 // 目录:单栏居中页 / Table of contents: single-column centered page
