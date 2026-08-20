@@ -491,8 +491,9 @@
   align: (col, row) =>
    if col == 0 { center }
     else { left },
-  // 隔行变色(斑马纹)/ Alternating row colors (zebra striping)
-  fill: (col, row) => if calc.odd(row+1) { rgb("#aaaaaa00") } else { rgb("#aaffaa33") },
+  // 行和列同时斑马纹:相邻行、相邻列颜色交错 / Zebra striping on both rows & columns
+  // 奇偶(row+col)决定底色,使水平与垂直相邻单元格均不同色
+  fill: (col, row) => if calc.even(row+col) { rgb("#aaaaaa00") } else { rgb("#aaffaa33") },
   inset: 10pt,
   stroke: none,
   // align: horizon,
