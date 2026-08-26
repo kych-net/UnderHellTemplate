@@ -222,8 +222,8 @@
   body) = {
   // 设置文档元数据 / Set document metadata
   set document(author: author, title: title)
-  // 段落间距与首行缩进 / Paragraph spacing and first-line indent
-  set par(spacing: 0.7em, first-line-indent: (amount: 1.5em, all: false))
+  // 段落间距(无首行缩进)/ Paragraph spacing (no first-line indent)
+  set par(spacing: 0.7em, first-line-indent: (amount: 0em, all: false))
   // set heading(numbering: "1.1")
 
   // 读取语言 TOML,提取字体配置(优先级低于用户在文章中自定义的字体)
