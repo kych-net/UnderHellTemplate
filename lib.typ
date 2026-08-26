@@ -79,22 +79,29 @@
 }
 
 // 查询某元素在当前名词系统下的名词。
-// 普通系统("普通")直接返回元素名(id)本身;
-// 其他系统查表,缺失时回退到普通名词(即 id)。
+// CSV 为宽表,首列是元素 id;另有"默认"列存放默认显示名(可与 id 不同,
+// 留空则回退到 id)。普通系统("普通")读取"默认"列;
+// 其他系统查对应列,缺失时依次回退到"默认"列、id。
 // 返回的文本以深红色标出,默认使用标题字体(header),可用 font 参数覆盖。
 // Query the term for an element in the current system.
-// The 普通 system just returns the element name (id) itself;
-// other systems look it up, falling back to the id when missing.
-// The result is rendered in dark red, defaulting to the header font,
-// overridable via the font parameter.
+// The CSV is a wide table: first column is the element id, plus a "默认"
+// column holding the default display name (may differ from id; empty falls
+// back to id). The 普通 system reads the "默认" column; other systems look
+// up their column, falling back to "默认", then id.
 #let _元素字体 = state("元素字体", none)
 
 #let 元素(id, font: none) = {
   context {
     let cur = nomen-state.get()
     let data = nomen-data-state.get()
+    // 默认显示名:读"默认"列,空则回退到 id / Default name from "默认" column, fallback id
+    let 默认名 = {
+      let t = _nomen-lookup(id, "默认", data)
+      if t == none { id } else { t }
+    }
+    // 当前系统名词:普通系统直接用默认名;其他系统查表,缺失回退默认名
     let t = _nomen-lookup(id, cur, data)
-    let term = if t == none { id } else { t }
+    let term = if cur == "普通" { 默认名 } else if t == none { 默认名 } else { t }
     let f = if font != none { font } else { _元素字体.get() }
     let args = (fill: darkred)
     if f != none {
