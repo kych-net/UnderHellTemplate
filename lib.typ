@@ -66,9 +66,12 @@
   if col == none {
     return none
   }
+  // 将 id 规范化为字符串用于比较(content 取 .text 得字符串,字符串原样)
+  // Normalize id to a string for comparison (content -> .text string, string as-is)
+  let id-key = if type(id) == content { id.text } else { id }
   // 逐行查找元素 id / Scan rows for the element id
   for row in data.slice(1) {
-    if row.len() > col and row.at(0) == id {
+    if row.len() > col and row.at(0) == id-key {
       let term = row.at(col)
       if term != "" {
         return term
