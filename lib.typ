@@ -93,6 +93,38 @@
 // up their column, falling back to "默认", then id.
 #let _元素字体 = state("元素字体", none)
 
+#let 设定元素(id, font: none) = {
+  context {
+    let cur = nomen-state.get()
+    let data = nomen-data-state.get()
+    // 默认显示名:读"默认"列,空则回退到 id / Default name from "默认" column, fallback id
+    let 默认名 = {
+      let t = _nomen-lookup(id, "默认", data)
+      if t == none { id } else { t }
+    }
+    // 当前系统名词:普通系统直接用默认名;其他系统查表,缺失回退默认名
+    let t = _nomen-lookup(id, cur, data)
+    let term = if cur == "普通" { 默认名 } else if t == none { 默认名 } else { t }
+    let f = if font != none { font } else { _元素字体.get() }
+    // 将 id 规范化为字符串 / Normalize id to string
+    let id-str = if type(id) == content { id.text } else { id }
+    // 设置锚点并渲染文本(内联,不换行) / Set anchor and render text (inline, no line break)
+    if f != none {
+      box[
+        #label(id-str)
+        #set text(fill: darkred, font: f)
+        #term
+      ]
+    } else {
+      box[
+        #label(id-str)
+        #set text(fill: darkred)
+        #term
+      ]
+    }
+  }
+}
+
 #let 元素(id, font: none) = {
   context {
     let cur = nomen-state.get()
@@ -106,11 +138,20 @@
     let t = _nomen-lookup(id, cur, data)
     let term = if cur == "普通" { 默认名 } else if t == none { 默认名 } else { t }
     let f = if font != none { font } else { _元素字体.get() }
-    let args = (fill: darkred)
+    // 将 id 规范化为字符串 / Normalize id to string
+    let id-str = if type(id) == content { id.text } else { id }
+    // 创建可点击链接,跳转到对应锚点 / Create clickable link to anchor
     if f != none {
-      args.font = f
+      link("#" + id-str)[
+        #set text(fill: darkred, font: f)
+        #term
+      ]
+    } else {
+      link("#" + id-str)[
+        #set text(fill: darkred)
+        #term
+      ]
     }
-    text(..args)[#term]
   }
 }
 
