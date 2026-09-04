@@ -93,7 +93,7 @@
 // up their column, falling back to "默认", then id.
 #let _元素字体 = state("元素字体", none)
 
-#let 设定元素(id, font: none) = {
+#let 设定元素(id, font: none, level: none) = {
   context {
     let cur = 元素系统-state.get()
     let data = 元素系统数据-state.get()
@@ -108,18 +108,29 @@
     let f = if font != none { font } else { _元素字体.get() }
     // 将 id 规范化为字符串 / Normalize id to string
     let id-str = if type(id) == content { id.text } else { id }
-    // 渲染文本(内联,不换行)。注意:labels 由调用方在想被引用处显式添加
-    // (如 heading 后用 <id>),因为 Typst 不允许 @ 引用被样式化的内联文本。
-    // / Render inline text (no line break). Labels must be supplied explicitly by
-    // the caller (e.g. `... <id>`) because Typst forbids @-referencing styled text.
-    if f != none {
-      box[
-        #text(fill: darkred, font: f)[#term]
-      ]
+    if level != none {
+      // 标题+锚点模式:生成带可引用标签的编号标题。
+      // Typst 中 @ 引用只能指向带编号的 located 元素(如 heading),而内联文本
+      // 无法承载可引用标签,故 eval 生成含静态 `<id>` 的 heading,样式由下方
+      // show heading 规则统一应用。
+      // / Heading+anchor mode: a numbered heading with a referenceable label.
+      // In Typst @ references only target numbered, located elements (e.g.
+      // heading), so we eval a heading embedding a literal `<id>` tag.
+      let term-str = if type(term) == content { term.text } else { str(term) }
+      let src = "#heading(level: " + str(level) + ")[" + term-str + "] <" + id-str + ">"
+      eval(src, mode: "markup")
     } else {
-      box[
-        #text(fill: darkred)[#term]
-      ]
+      // 普通模式:渲染内联文本(不换行)。labels 由调用方在想被引用处显式添加。
+      // / Normal mode: render inline text (no line break).
+      if f != none {
+        box[
+          #text(fill: darkred, font: f)[#term]
+        ]
+      } else {
+        box[
+          #text(fill: darkred)[#term]
+        ]
+      }
     }
   }
 }
@@ -139,42 +150,59 @@
     let f = if font != none { font } else { _元素字体.get() }
     // 将 id 规范化为字符串 / Normalize id to string
     let id-str = if type(id) == content { id.text } else { id }
-    // 创建可点击链接,跳转到对应锚点 / Create clickable link to anchor
-    if f != none {
-      link("#" + id-str)[
-        #set text(fill: darkred, font: f)
-        #term
-      ]
+    // 检测该概念是否有已定义标签:有则链接指向其定义处;
+    // 无定义时:HTML 编译(传 --input html=true 且用 --features html)用
+    // <span title="未定义"> 的悬停弹窗提示;PDF 则照常渲染深红词,不做处理。
+    // / Check whether a label for this concept exists: link to it if so.
+    // Otherwise: on HTML output (--input html=true with --features html) show
+    // a hover popup via <span title="未定义">; on PDF just render the term.
+    let 已定义 = query(label(id-str)).len() > 0
+    let is-html = "html" in sys.inputs and sys.inputs.html == "true"
+    if 已定义 {
+      if f != none {
+        link("#" + id-str)[
+          #set text(fill: darkred, font: f)
+          #term
+        ]
+      } else {
+        link("#" + id-str)[
+          #set text(fill: darkred)
+          #term
+        ]
+      }
+    } else if is-html {
+      if f != none {
+        html.elem("span", attrs: (title: "未定义",))[
+          #set text(fill: darkred, font: f)
+          #term
+        ]
+      } else {
+        html.elem("span", attrs: (title: "未定义",))[
+          #set text(fill: darkred)
+          #term
+        ]
+      }
     } else {
-      link("#" + id-str)[
-        #set text(fill: darkred)
-        #term
-      ]
+      // PDF 下未定义概念照常渲染词;附一个未附着 label 以触发编译期 warning,
+      // 提示该概念尚无定义小节(HTML 分支用弹窗提示,不在此报 warning)。
+      // / Render the term normally on PDF; attach an unattached label to raise
+      // a compile-time warning that the concept has no definition (the HTML
+      // branch uses a tooltip instead and does not warn here).
+      if f != none {
+        box[
+          #label(id-str)
+          #set text(fill: darkred, font: f)
+          #term
+        ]
+      } else {
+        box[
+          #label(id-str)
+          #set text(fill: darkred)
+          #term
+        ]
+      }
     }
   }
-}
-
-// 元素标题:生成一个带可引用标签的编号标题。
-// Typst 中 @ 引用只能指向带编号的 located 元素(如 heading),而函数返回的
-// 内联文本无法承载可引用标签,因此这里用 eval 生成含静态 `<id>` 的 heading。
-// 样式(深红、小型大写等)由下方 show heading 规则统一应用。
-// / Element heading: produce a numbered heading with a referenceable label.
-// In Typst @ references only target numbered, located elements (e.g. heading),
-// and inline text returned by a function cannot carry a referenceable label,
-// so we eval a heading that embeds a literal `<id>` tag.
-#let 元素标题(level: 1, id, font: none) = context {
-  let cur = 元素系统-state.get()
-  let data = 元素系统数据-state.get()
-  let 默认名 = {
-    let t = _元素系统查询(id, "默认", data)
-    if t == none { id } else { t }
-  }
-  let t = _元素系统查询(id, cur, data)
-  let term = if cur == "普通" { 默认名 } else if t == none { 默认名 } else { t }
-  let id-str = if type(id) == content { id.text } else { id }
-  let term-str = if type(term) == content { term.text } else { str(term) }
-  let src = "#heading(level: " + str(level) + ")[" + term-str + "] <" + id-str + ">"
-  eval(src, mode: "markup")
 }
 
 // 设置当前元素系统 / Set the current element system
