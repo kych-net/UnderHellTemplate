@@ -108,18 +108,17 @@
     let f = if font != none { font } else { _元素字体.get() }
     // 将 id 规范化为字符串 / Normalize id to string
     let id-str = if type(id) == content { id.text } else { id }
-    // 设置锚点并渲染文本(内联,不换行) / Set anchor and render text (inline, no line break)
+    // 渲染文本(内联,不换行)。注意:labels 由调用方在想被引用处显式添加
+    // (如 heading 后用 <id>),因为 Typst 不允许 @ 引用被样式化的内联文本。
+    // / Render inline text (no line break). Labels must be supplied explicitly by
+    // the caller (e.g. `... <id>`) because Typst forbids @-referencing styled text.
     if f != none {
       box[
-        #label(id-str)
-        #set text(fill: darkred, font: f)
-        #term
+        #text(fill: darkred, font: f)[#term]
       ]
     } else {
       box[
-        #label(id-str)
-        #set text(fill: darkred)
-        #term
+        #text(fill: darkred)[#term]
       ]
     }
   }
@@ -153,6 +152,29 @@
       ]
     }
   }
+}
+
+// 元素标题:生成一个带可引用标签的编号标题。
+// Typst 中 @ 引用只能指向带编号的 located 元素(如 heading),而函数返回的
+// 内联文本无法承载可引用标签,因此这里用 eval 生成含静态 `<id>` 的 heading。
+// 样式(深红、小型大写等)由下方 show heading 规则统一应用。
+// / Element heading: produce a numbered heading with a referenceable label.
+// In Typst @ references only target numbered, located elements (e.g. heading),
+// and inline text returned by a function cannot carry a referenceable label,
+// so we eval a heading that embeds a literal `<id>` tag.
+#let 元素标题(level: 1, id, font: none) = context {
+  let cur = 元素系统-state.get()
+  let data = 元素系统数据-state.get()
+  let 默认名 = {
+    let t = _元素系统查询(id, "默认", data)
+    if t == none { id } else { t }
+  }
+  let t = _元素系统查询(id, cur, data)
+  let term = if cur == "普通" { 默认名 } else if t == none { 默认名 } else { t }
+  let id-str = if type(id) == content { id.text } else { id }
+  let term-str = if type(term) == content { term.text } else { str(term) }
+  let src = "#heading(level: " + str(level) + ")[" + term-str + "] <" + id-str + ">"
+  eval(src, mode: "markup")
 }
 
 // 设置当前元素系统 / Set the current element system
