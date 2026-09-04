@@ -205,6 +205,25 @@
   }
 }
 
+// 评论:默认以删除线显示,字体与标题相同(header);
+// 编译时传 `--input 隐藏评论=true` 可整体隐藏。
+// / Comment: shown struck-through by default, in the header font;
+// pass `--input 隐藏评论=true` at compile time to hide it entirely.
+#let 评论(body) = {
+  if "隐藏评论" in sys.inputs and sys.inputs.隐藏评论 == "true" {
+    []
+  } else {
+    context {
+      let f = _元素字体.get()
+      if f != none {
+        text(fill: gray, font: f)[#body]
+      } else {
+        text(fill: gray)[#body]
+      }
+    }
+  }
+}
+
 // 设置当前元素系统 / Set the current element system
 #let 设置元素系统(name) = 元素系统-state.update(name)
 
@@ -337,7 +356,7 @@
   // 斜体字体列表(支持回退)/ Italic font list (with fallback)
   let italic-fonts = if "italic" in fonts-cfg { fonts-cfg.italic } else { none }
 
-  // 非 en 时更新语言状态 / Update language state when not English
+// 非 en 时更新语言状态 / Update language state when not English
   if lang != "en" {
     language.update(lang-toml)
   }
