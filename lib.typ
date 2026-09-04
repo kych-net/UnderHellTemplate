@@ -162,14 +162,14 @@
 #let set-元素系统数据(data) = 元素系统数据-state.update(data)
 
 // ------------------------------------------------------------
-// 名词总表:以表格展示所有元素在各元素系统下的名称
+// 元素总表:以表格展示所有元素在各元素系统下的名称
 // Element-system table: show every element's term under each system
 //   data   - 可选,元素系统数据(宽表 CSV);缺省从模板状态读取
 //            Optional element-system data (wide CSV); defaults to template state
 //   用法 / Usage:
-//     #名词总表()      # 使用模板注入的数据 / use injected data
+//     #元素总表()      # 使用模板注入的数据 / use injected data
 // ------------------------------------------------------------
-#let 名词总表(data: none) = {
+#let 元素总表(data: none) = {
   context {
     let d = if data == none { 元素系统数据-state.get() } else { data }
     if d == none or d.len() == 0 {
