@@ -24,33 +24,33 @@
 #let language = state("language", toml("languages/en.toml"))
 
 // ------------------------------------------------------------
-// 名词系统 / Nomenclature system
-// 每个核心概念用一个"元素"(即普通名词系统的名称)作为 ID。
-// 普通名词系统直接读取 ID 的值本身;其他名词系统为同一元素提供不同名词。
-// 数据以 CSV(宽表)存储(如 文档/名词系统.csv):首行是各名词系统名,
+// 元素系统 / Element system
+// 每个核心概念用一个"元素"(即普通元素系统的名称)作为 ID。
+// 普通元素系统直接读取 ID 的值本身;其他元素系统为同一元素提供不同名词。
+// 数据以 CSV(宽表)存储(如 文档/元素系统.csv):首行是各元素系统名,
 // 首列是元素 id,单元格为该元素在对应系统下的名词,无名词则留空。
-// 由文档通过 csv() 读取后传入 地狱之下模板(nomen-data:) 注入。
+// 由文档通过 csv() 读取后传入 地狱之下模板(元素系统数据:) 注入。
 // 当前系统缺失某元素时自动回退到普通名词(即 ID)。
 // Each core concept is identified by an "元素" (the common-system name).
 // The 普通 system reads the ID value directly; other systems provide
-// alternative terms. Data is a wide-format CSV (e.g. 文档/名词系统.csv):
+// alternative terms. Data is a wide-format CSV (e.g. 文档/元素系统.csv):
 // header row = system names, first column = element ids, cells = the term
 // under that system (empty if none), read by the document with csv() and
-// injected via 地狱之下模板(nomen-data:). Missing elements fall back to
+// injected via 地狱之下模板(元素系统数据:). Missing elements fall back to
 // the common term (the ID) automatically.
 // ------------------------------------------------------------
 
-// 名词系统状态:当前系统名,默认普通系统 "普通";数据数组
-// Nomenclature state: current system name (default "普通") and data array
-#let nomen-state = state("nomen", "普通")
-#let nomen-data-state = state("nomen-data", none)
+// 元素系统状态:当前系统名,默认普通系统 "普通";数据数组
+// Element-system state: current system name (default "普通") and data array
+#let 元素系统-state = state("元素系统", "普通")
+#let 元素系统数据-state = state("元素系统数据", none)
 
 // 在数据中查找 ID 在当前系统中的名词;未找到返回 none
 // Look up the term for an ID in a given system within data; none if absent
 // 数据为宽表:首行是表头(列名),首列是元素 id,单元格为该元素在对应系统中的名词(可为空)。
 // Data is a wide table: header row = system names, first column = element ids,
 // cells = that element's term under each system (may be empty).
-#let _nomen-lookup(id, system, data) = {
+#let _元素系统查询(id, system, data) = {
   if data == none or data.len() == 0 {
     return none
   }
@@ -81,7 +81,7 @@
   none
 }
 
-// 查询某元素在当前名词系统下的名词。
+// 查询某元素在当前元素系统下的名词。
 // CSV 为宽表,首列是元素 id;另有"默认"列存放默认显示名(可与 id 不同,
 // 留空则回退到 id)。普通系统("普通")读取"默认"列;
 // 其他系统查对应列,缺失时依次回退到"默认"列、id。
@@ -95,15 +95,15 @@
 
 #let 设定元素(id, font: none) = {
   context {
-    let cur = nomen-state.get()
-    let data = nomen-data-state.get()
+    let cur = 元素系统-state.get()
+    let data = 元素系统数据-state.get()
     // 默认显示名:读"默认"列,空则回退到 id / Default name from "默认" column, fallback id
     let 默认名 = {
-      let t = _nomen-lookup(id, "默认", data)
+      let t = _元素系统查询(id, "默认", data)
       if t == none { id } else { t }
     }
     // 当前系统名词:普通系统直接用默认名;其他系统查表,缺失回退默认名
-    let t = _nomen-lookup(id, cur, data)
+    let t = _元素系统查询(id, cur, data)
     let term = if cur == "普通" { 默认名 } else if t == none { 默认名 } else { t }
     let f = if font != none { font } else { _元素字体.get() }
     // 将 id 规范化为字符串 / Normalize id to string
@@ -127,15 +127,15 @@
 
 #let 元素(id, font: none) = {
   context {
-    let cur = nomen-state.get()
-    let data = nomen-data-state.get()
+    let cur = 元素系统-state.get()
+    let data = 元素系统数据-state.get()
     // 默认显示名:读"默认"列,空则回退到 id / Default name from "默认" column, fallback id
     let 默认名 = {
-      let t = _nomen-lookup(id, "默认", data)
+      let t = _元素系统查询(id, "默认", data)
       if t == none { id } else { t }
     }
     // 当前系统名词:普通系统直接用默认名;其他系统查表,缺失回退默认名
-    let t = _nomen-lookup(id, cur, data)
+    let t = _元素系统查询(id, cur, data)
     let term = if cur == "普通" { 默认名 } else if t == none { 默认名 } else { t }
     let f = if font != none { font } else { _元素字体.get() }
     // 将 id 规范化为字符串 / Normalize id to string
@@ -155,28 +155,28 @@
   }
 }
 
-// 设置当前名词系统 / Set the current nomenclature system
-#let set-nomen(name) = nomen-state.update(name)
+// 设置当前元素系统 / Set the current element system
+#let 设置元素系统(name) = 元素系统-state.update(name)
 
-// 设置名词系统数据(CSV 读取结果)/ Set nomenclature data (csv() result)
-#let set-nomen-data(data) = nomen-data-state.update(data)
+// 设置元素系统数据(CSV 读取结果)/ Set element-system data (csv() result)
+#let set-元素系统数据(data) = 元素系统数据-state.update(data)
 
 // ------------------------------------------------------------
-// 名词总表:以表格展示所有元素在各名词系统下的名称
-// Nomenclature table: show every element's term under each system
-//   data   - 可选,名词系统数据(宽表 CSV);缺省从模板状态读取
-//            Optional nomenclature data (wide CSV); defaults to template state
+// 名词总表:以表格展示所有元素在各元素系统下的名称
+// Element-system table: show every element's term under each system
+//   data   - 可选,元素系统数据(宽表 CSV);缺省从模板状态读取
+//            Optional element-system data (wide CSV); defaults to template state
 //   用法 / Usage:
 //     #名词总表()      # 使用模板注入的数据 / use injected data
 // ------------------------------------------------------------
 #let 名词总表(data: none) = {
   context {
-    let d = if data == none { nomen-data-state.get() } else { data }
+    let d = if data == none { 元素系统数据-state.get() } else { data }
     if d == none or d.len() == 0 {
       return none
     }
     let header = d.at(0)
-    // 首列是元素 id,其后各列是名词系统 / First column is id, rest are systems
+    // 首列是元素 id,其后各列是元素系统 / First column is id, rest are systems
     let systems = header.slice(1)
     // 数据行数组:每个元素一行;系统列取该列名词,空则显示 — / Data array
     let rows = ()
@@ -232,18 +232,18 @@
 //                  Screen mode: A5 single column, keeps background & colors, narrow margins,
 //                  smaller font size. For reading on phones/tablets.
 //                  Defaults to reading --input screen=true at compile time
-//   nomen        - 名词系统名称,决定 #nomen-term() 的取词来源
-//                  默认自动读取编译时输入变量 --input nomen=xxx,缺省为 "普通"
-//                  文档也可显式传入 nomen: "xxx" 覆盖
-//                  Nomenclature system name; selects which system #nomen-term() draws from.
-//                  Defaults to reading --input nomen=xxx at compile time,
-//                  falling back to "普通". Documents can override with nomen: "xxx"
-//   nomen-data   - 名词系统数据文件位置,由文档在初始化时传入 csv() 读取结果。
-//                  所有名词系统集中在同一个 CSV(列: id, system, term);
-//                  如 csv("名词系统.csv")。缺省不注入。
-//                  Nomenclature data file location: pass the csv() result here,
+//   元素系统        - 元素系统名称,决定 #元素(...) 的取词来源
+//                  默认自动读取编译时输入变量 --input 元素系统=xxx,缺省为 "普通"
+//                  文档也可显式传入 元素系统: "xxx" 覆盖
+//                  Element system name; selects which system #元素(...) draws from.
+//                  Defaults to reading --input 元素系统=xxx at compile time,
+//                  falling back to "普通". Documents can override with 元素系统: "xxx"
+//   元素系统数据   - 元素系统数据文件位置,由文档在初始化时传入 csv() 读取结果。
+//                  所有元素系统集中在同一个 CSV(列: id, system, term);
+//                  如 csv("元素系统.csv")。缺省不注入。
+//                  Element-system data file location: pass the csv() result here,
 //                  all systems live in one CSV (columns: id, system, term),
-//                  e.g. csv("名词系统.csv"). Not injected by default.
+//                  e.g. csv("元素系统.csv"). Not injected by default.
 // ------------------------------------------------------------
 #let 地狱之下模板(title: "",
               author: "",
@@ -258,8 +258,8 @@
               lang: "en",
               print: "print" in sys.inputs and sys.inputs.print == "true",
               screen: "screen" in sys.inputs and sys.inputs.screen == "true",
-              nomen: if "nomen" in sys.inputs and sys.inputs.nomen != "" { sys.inputs.nomen } else { "普通" },
-              nomen-data: none,
+              元素系统: if "元素系统" in sys.inputs and sys.inputs.元素系统 != "" { sys.inputs.元素系统 } else { "普通" },
+              元素系统数据: none,
   body) = {
   // 设置文档元数据 / Set document metadata
   set document(author: author, title: title)
@@ -292,11 +292,11 @@
     language.update(lang-toml)
   }
 
-  // 设置当前名词系统 / Set the current nomenclature system
-  nomen-state.update(nomen)
-  // 注入名词系统数据(若有)/ Inject nomenclature data if provided
-  if nomen-data != none {
-    nomen-data-state.update(nomen-data)
+  // 设置当前元素系统 / Set the current element system
+  元素系统-state.update(元素系统)
+  // 注入元素系统数据(若有)/ Inject element-system data if provided
+  if 元素系统数据 != none {
+    元素系统数据-state.update(元素系统数据)
   }
 
   // 标题始终使用深红(打印/普通/小屏均保持红色) / Headings always darkred
