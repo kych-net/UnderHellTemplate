@@ -227,6 +227,25 @@
 // 设置当前元素系统 / Set the current element system
 #let 设置元素系统(name) = 元素系统-state.update(name)
 
+// 待办:以标题字体、醒目橙色标注待办事项;编译时传 `--input 隐藏TODO=true`
+// 可整体隐藏。
+// / TODO: mark pending items in the header font, highlighted orange;
+// pass `--input 隐藏TODO=true` at compile time to hide them entirely.
+#let TODO(body) = {
+  if "隐藏TODO" in sys.inputs and sys.inputs.隐藏TODO == "true" {
+    []
+  } else {
+    context {
+      let f = _元素字体.get()
+      if f != none {
+        text(fill: orange, font: f)[#body]
+      } else {
+        text(fill: orange)[#body]
+      }
+    }
+  }
+}
+
 // 设置元素系统数据(CSV 读取结果)/ Set element-system data (csv() result)
 #let set-元素系统数据(data) = 元素系统数据-state.update(data)
 
