@@ -299,7 +299,15 @@
     rows.push(table.header([*元素*], ..systems.map(s => text(weight: "bold", s))))
     for r in d.slice(1) {
       if r.len() > 0 {
-        rows.push(r.at(0))
+        // 元素名列:有定义的元素渲染为指向其定义标题的链接
+        // / Element name cell: link to its definition if it exists
+        let id = r.at(0)
+        let id-str = if type(id) == content { id.text } else { id }
+        if query(label(id-str)).len() > 0 {
+          rows.push(link("#" + id-str)[#text(fill: darkred)[#id]])
+        } else {
+          rows.push(id)
+        }
         for j in range(1, r.len()) {
           let cell = r.at(j)
           rows.push(if cell == "" or cell == none { text(fill: rgb("#888888"))[—] } else { cell })
