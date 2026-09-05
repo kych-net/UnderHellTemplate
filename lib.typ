@@ -238,9 +238,7 @@
   context {
     // 登记(供 #TODO表格 汇总)/ Register for the TODO table
     let 页 = here().page()
-    // 用渲染 y 坐标估算当前页内行号(约 18pt/行)
-    let 行 = int(here().position().y / 18pt) + 1
-    _TODO登记.update((.._TODO登记.get(), (页面: 页, 行: 行, 内容: body)))
+    _TODO登记.update((.._TODO登记.get(), (页面: 页, 内容: body)))
     if "隐藏TODO" in sys.inputs and sys.inputs.隐藏TODO == "true" {
       []
     } else {
@@ -264,11 +262,11 @@
     } else {
       let rows = range(d.len()).map(k => {
         let it = d.at(k)
-        ([#(k + 1)], [#(it.页面)页·第#(it.行)行], [#it.内容])
+        ([#(k + 1)], [#it.页面], [#it.内容])
       })
       table(
         columns: (auto, auto, 1fr),
-        table.header([编号], [位置(页-行)], [TODO 内容]),
+        table.header([编号], [位置(页码)], [TODO 内容]),
         ..rows.flatten(),
       )
     }
