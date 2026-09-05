@@ -228,49 +228,20 @@
 #let 设置元素系统(name) = 元素系统-state.update(name)
 
 // 待办:以标题字体、醒目橙色标注待办事项;编译时传 `--input 隐藏TODO=true`
-// 可整体隐藏。每次使用会登记一页(位置)与该 TODO 内容,
-// 供 `#TODO表格` 汇总成「ID / 位置 / TODO」清单。
+// 可整体隐藏。
 // / TODO: mark pending items in the header font, highlighted orange;
 // pass `--input 隐藏TODO=true` at compile time to hide them entirely.
-// Each use records its location and content for `#TODO表格`.
-#let _TODO登记 = state("TODO登记", ())
 #let TODO(body) = {
-  context {
-    // 登记(供 #TODO表格 汇总)/ Register for the TODO table
-    let 页 = here().page()
-    // 用渲染 y 坐标估算当前页内行号(约 18pt/行)
-    let 行 = int(here().position().y / 18pt) + 1
-    _TODO登记.update((.._TODO登记.get(), (页面: 页, 行: 行, 内容: body)))
-    if "隐藏TODO" in sys.inputs and sys.inputs.隐藏TODO == "true" {
-      []
-    } else {
+  if "隐藏TODO" in sys.inputs and sys.inputs.隐藏TODO == "true" {
+    []
+  } else {
+    context {
       let f = _元素字体.get()
       if f != none {
         text(fill: orange, font: f)[#body]
       } else {
         text(fill: orange)[#body]
       }
-    }
-  }
-}
-
-// TODO表格:渲染包含 编号(ID)、位置、TODO 内容 的表格。
-// / TODO table: render a table with 编号(ID)、位置、TODO 内容.
-#let TODO表格() = {
-  context {
-    let d = _TODO登记.get()
-    if d.len() == 0 {
-      [当前无 #TODO。]
-    } else {
-      let rows = range(d.len()).map(k => {
-        let it = d.at(k)
-        ([#(k + 1)], [#(it.页面)页·第#(it.行)行], [#it.内容])
-      })
-      table(
-        columns: (auto, auto, 1fr),
-        table.header([编号], [位置(页-行)], [TODO 内容]),
-        ..rows.flatten(),
-      )
     }
   }
 }
