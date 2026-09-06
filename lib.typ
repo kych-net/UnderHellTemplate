@@ -93,6 +93,12 @@
 // up their column, falling back to "默认", then id.
 #let _元素字体 = state("元素字体", none)
 
+// 当前语言的正文字标点映射(由 地狱之下模板 按 lang 写入);空表则不替换。
+// 文档顶层用 `#show text` 读取它,仅在"标点后紧跟空格"时替换,故不影响数字、链接。
+// / Current language's body-punctuation map (set per lang); read by a doc-level
+// show text.
+#let _语言标点 = state("语言标点", (:))
+
 #let 设定元素(id, font: none, level: none) = {
   context {
     let cur = 元素系统-state.get()
@@ -415,29 +421,8 @@
     language.update(lang-toml)
   }
 
-  // 正文标点按语言渲染:读语言 toml 的 [标点] 表(源半角 -> 目标符号),
-  // 若语言有映射则对正文文本逐字符替换(数字两侧的源字符不替换,保护小数/比例)。
-  // / Render body punctuation per language: read [标点] table in the language
-  // toml and replace half-width source chars, skipping those adjacent to digits.
-  // 正文标点按语言渲染:读语言 toml 的 [标点] 表(源半角 -> 目标符号)。
-  // 仅在"标点后紧跟空格或行尾"时替换(正文句子标点后本就该有空格),
-  // 并由 show rule 在渲染阶段(文本成形后)进行,因而不会影响数字、链接等。
-  // / Render body punctuation per language via show rule (render time): replace
-  // a half-width source punct only when directly followed by whitespace/end,
-  // so numbers, links, etc. are untouched.
-  let 标点表 = if "标点" in lang-toml { lang-toml.标点 } else { (:) }
-  if 标点表.len() > 0 {
-    let 转义源(c) = c.replace("\\", "\\\\").replace(".", "\\.").replace("?", "\\?").replace("*", "\\*").replace("+", "\\+").replace("(", "\\(").replace(")", "\\)").replace("[", "\\[").replace("]", "\\]").replace("{", "\\{").replace("}", "\\}").replace("^", "\\^").replace("$", "\\$").replace("|", "\\|")
-    show text: it => {
-      let s = it.plaintext()
-      let out = s
-      for (src, tgt) in 标点表 {
-        let re = regex("(?<![0-9])" + 转义源(src) + "(?=\\s|$)(?![0-9])")
-        out = re.replace(out, tgt)
-      }
-      if out == s { it } else { [#out] }
-    }
-  }
+  // 写入当前语言的正文字标点映射,供顶层 show text 渲染按语言替换
+  _语言标点.update(if "标点" in lang-toml { lang-toml.at("标点") } else { (:) })
 
   // 设置当前元素系统 / Set the current element system
   元素系统-state.update(元素系统)
@@ -833,9 +818,9 @@
       #line(stroke: 1.5pt + 强调色, length: 100%)
       // AC/HP/Speed 标签使用当前语言配置 / AC/HP/Speed labels from current language
       #context [
-        #text(fill: 强调色)[*#language.get().stats.ac*] #stats.ac\
-        #text(fill: 强调色)[*#language.get().stats.hp*] #stats.hp\
-        #text(fill: 强调色)[*#language.get().stats.speed*] #stats.speed\
+        #text(fill: 强调色)[*#language.get().stats.ac*] #stats.ac#linebreak()
+        #text(fill: 强调色)[*#language.get().stats.hp*] #stats.hp#linebreak()
+        #text(fill: 强调色)[*#language.get().stats.speed*] #stats.speed#linebreak()
       ]
 
       #line(stroke: 1.5pt + 强调色, length: 100%)
@@ -845,7 +830,7 @@
 
       // 技能块(感知、语言、挑战等级等)/ Skill block (senses, languages, challenge, etc.)
       #for skill in stats.skillblock {
-        [#text(fill: 强调色)[*#skill.at(0)*] #skill.at(1)\ ]
+        [#text(fill: 强调色)[*#skill.at(0)*] #skill.at(1)#linebreak() ]
       }
       #line(stroke: 1.5pt + 强调色, length: 100%)
       // 特性 / Traits (表格形式)
@@ -878,7 +863,7 @@
               #set par(spacing: 1em)
               #text(size: 1.3em, fill: 强调色)[#box(width:100%, inset: (bottom: 3pt), stroke: (bottom: 1pt+darkyellow))[#smallcaps(section)]]
               #for action in stats.at(section) {
-                [_*#text(fill: 强调色)[#action.at(0)].*_ #action.at(1) \ ]
+                [_*#text(fill: 强调色)[#action.at(0)].*_ #action.at(1) #linebreak() ]
               }
             ]
           }
@@ -936,7 +921,7 @@
       for (key, label) in sections {
         if key in npc.keys() {
           block(spacing: 0.8em)[
-            #text(fill: darkred, weight: 700)[#smallcaps(label)] \
+            #text(fill: darkred, weight: 700)[#smallcaps(label)] #linebreak()
             #npc.at(key)
           ]
         }
@@ -959,7 +944,7 @@
   // 属性列表(施法时间、范围、持续时间、成分等)/ Property list
   #for prop in spl.properties {
 
-       [*#prop.at(0):* #prop.at(1) \ ]
+       [*#prop.at(0):* #prop.at(1) #linebreak() ]
 
 
       }
