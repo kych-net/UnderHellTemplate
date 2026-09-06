@@ -415,6 +415,30 @@
     language.update(lang-toml)
   }
 
+  // 正文标点按语言渲染:读语言 toml 的 [标点] 表(源半角 -> 目标符号),
+  // 若语言有映射则对正文文本逐字符替换(数字两侧的源字符不替换,保护小数/比例)。
+  // / Render body punctuation per language: read [标点] table in the language
+  // toml and replace half-width source chars, skipping those adjacent to digits.
+  // 正文标点按语言渲染:读语言 toml 的 [标点] 表(源半角 -> 目标符号)。
+  // 仅在"标点后紧跟空格或行尾"时替换(正文句子标点后本就该有空格),
+  // 并由 show rule 在渲染阶段(文本成形后)进行,因而不会影响数字、链接等。
+  // / Render body punctuation per language via show rule (render time): replace
+  // a half-width source punct only when directly followed by whitespace/end,
+  // so numbers, links, etc. are untouched.
+  let 标点表 = if "标点" in lang-toml { lang-toml.标点 } else { (:) }
+  if 标点表.len() > 0 {
+    let 转义源(c) = c.replace("\\", "\\\\").replace(".", "\\.").replace("?", "\\?").replace("*", "\\*").replace("+", "\\+").replace("(", "\\(").replace(")", "\\)").replace("[", "\\[").replace("]", "\\]").replace("{", "\\{").replace("}", "\\}").replace("^", "\\^").replace("$", "\\$").replace("|", "\\|")
+    show text: it => {
+      let s = it.plaintext()
+      let out = s
+      for (src, tgt) in 标点表 {
+        let re = regex("(?<![0-9])" + 转义源(src) + "(?=\\s|$)(?![0-9])")
+        out = re.replace(out, tgt)
+      }
+      if out == s { it } else { [#out] }
+    }
+  }
+
   // 设置当前元素系统 / Set the current element system
   元素系统-state.update(元素系统)
   // 注入元素系统数据(若有)/ Inject element-system data if provided
