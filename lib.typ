@@ -94,9 +94,9 @@
 #let _元素字体 = state("元素字体", none)
 
 // 当前语言的正文字标点映射(由 地狱之下模板 按 lang 写入);空表则不替换。
-// 文档顶层用 `#show text` 读取它,仅在"标点后紧跟空格"时替换,故不影响数字、链接。
+// 文档顶层用 `#show text` 读取它做渲染期替换;数字两侧与链接不受影响。
 // / Current language's body-punctuation map (set per lang); read by a doc-level
-// show text.
+// show text at render time.
 #let _语言标点 = state("语言标点", (:))
 
 #let 设定元素(id, font: none, level: none) = {
