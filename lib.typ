@@ -166,12 +166,12 @@
   let is-html = "html" in sys.inputs and sys.inputs.html == "true"
   if 已定义 {
    if f != none {
-    link("#" + id-str)[
+    link(label(id-str))[
      #set text(fill: darkred, font: f)
      #term
     ]
    } else {
-    link("#" + id-str)[
+    link(label(id-str))[
      #set text(fill: darkred)
      #term
     ]
@@ -310,7 +310,7 @@
     let id = r.at(0)
     let id-str = if type(id) == content { id.text } else { id }
     if query(label(id-str)).len() > 0 {
-     rows.push(link("#" + id-str)[#text(fill: darkred)[#id]])
+     rows.push(link(label(id-str))[#text(fill: darkred)[#id]])
     } else {
      rows.push(id)
     }
