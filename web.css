@@ -1,4 +1,11 @@
 /* 网页模式样式:仿标准 PDF 视觉(单栏、羊皮纸底色、深红标题、楷体正文) */
+/* 标题字体子集(自托管 woff2,由 make web 复制到 webfonts/) */
+@font-face {
+  font-family: "duan-kaixiao";
+  src: url("webfonts/duan-kaixiao-subset.woff2") format("woff2");
+  font-display: swap;
+}
+
 :root {
   --uh-red: #8b0000;
   --uh-yellow: #d4a017;
@@ -29,7 +36,7 @@ h6, .lv-6 { margin-left: calc(var(--uh-indent) * 5); }
 /* 标题:深红 + 楷体(标题字体),层级仿 PDF */
 h1, h2, h3, h4, h5, h6 {
   color: var(--uh-red);
-  font-family: "DuanNingMaoBiXiaoKai", "Kaiti SC", "STKaiti", "LXGW WenKai", serif;
+  font-family: "duan-kaixiao", "DuanNingMaoBiXiaoKai", "Kaiti SC", "STKaiti", serif;
   font-weight: 600;
   margin: 1.4em 0 0.6em;
 }
@@ -63,4 +70,4 @@ img { max-width: 100%; height: auto; display: block; margin: 1em auto; }
 /* 内联代码 */
 code { background: #ece5d3; padding: 0.1em 0.35em; border-radius: 3px; font-size: 0.9em; }
 /* 元素(核心概念):深红 + 标题字体,与 PDF 一致 */
-.uh-element { color: var(--uh-red); font-family: "DuanNingMaoBiXiaoKai", "Kaiti SC", "STKaiti", serif; }
+.uh-element { color: var(--uh-red); font-family: "duan-kaixiao", "DuanNingMaoBiXiaoKai", "Kaiti SC", "STKaiti", serif; }
