@@ -699,18 +699,18 @@
   html.elem("style", "/*UH_WEB_CSS*/")
 
   // 按标题层级缩进(论坛方案思想;HTML 导出不映射 block inset,
-  // 故用 html.elem 的 div+style 实现缩进:N 级标题缩 (N-1)*2em,其下内容缩 N*2em)
-  // / Indent by heading level. Since HTML export drops block inset, wrap
-  // headings and paragraphs with html.elem divs carrying margin-left.
+  // 故用 html.elem 的 div+style 实现缩进):每级 2 个空格宽(半角空格
+  // 实测 ≈2pt@12pt,即每级 4pt):N 级标题缩 (N-1) 级,其下内容缩 N 级。
+  // / Indent by heading level: 2 space characters per level (≈4pt at 12pt).
   show heading: it => {
-    html.elem("div", attrs: (style: "margin-left: " + str(2 * (it.level - 1)) + "em",))[#it]
+    html.elem("div", attrs: (style: "margin-left: " + str(4 * (it.level - 1)) + "pt",))[#it]
   }
   show selector.or(par, enum, list, table): it => context {
     let h = query(selector(heading).before(here())).at(-1, default: none)
     if h == none {
       it
     } else {
-      html.elem("div", attrs: (style: "margin-left: " + str(2 * h.level) + "em",))[#it]
+      html.elem("div", attrs: (style: "margin-left: " + str(4 * h.level) + "pt",))[#it]
     }
   }
 
@@ -720,14 +720,14 @@
   // 论坛方案:标题与段落/列表/表格分别包 block(inset)(PDF 支持 inset)
   // / PDF modes: same indentation by heading level, 2em per level.
   show heading: it => {
-    block(inset: (left: 2em * (it.level - 1)), it)
+    block(inset: (left: 4pt * (it.level - 1)), it)
   }
   show selector.or(par, enum, list, table): it => context {
     let h = query(selector(heading).before(here())).at(-1, default: none)
     if h == none {
       it
     } else {
-      block(inset: (left: 2em * h.level), it)
+      block(inset: (left: 4pt * h.level), it)
     }
   }
 
