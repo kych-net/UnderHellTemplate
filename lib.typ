@@ -13,6 +13,10 @@
 #let is_web() = "web" in sys.inputs and sys.inputs.web == "true"
 #let is-web-target() = is_web()
 
+// 嵌套缩进:按标题层级把正文递归包装为逐级左缩进的块,
+// 实现"N 级标题及其下内容缩进 N-1 级"(参考 TwilightBook / 论坛方案)。
+// / Nested indent: wrap body by heading depth so each level's content is
+// indented one more step (based on the TwilightBook approach).
 // 网页模式样式表:仿标准 PDF 视觉(由 web 模式注入 <style>)
 // / Web stylesheet: mirrors the standard PDF look (injected by web mode).
 #let read_web_css() = read("web.css")
@@ -688,14 +692,32 @@
  }
  show emph: set text(..italic-args)
 
- // 网页模式:注入仿 PDF 的样式表(单栏、羊皮纸底色、深红标题、楷体正文)
- // Web mode: inject a PDF-like stylesheet (single column, parchment bg,
- // dark-red headings, kai body font).
+ // 网页模式:注入仿 PDF 的样式表(单栏、羊皮纸底色、深红标题、楷体正文),
+ // 并按标题层级递归缩进内容(N 级标题及其下内容缩进 N-1 级)。
+ // Web mode: inject PDF-like stylesheet and nest content by heading level.
  if web {
   html.elem("style", "/*UH_WEB_CSS*/")
- }
 
- body
+  // 按标题层级缩进(论坛方案思想;HTML 导出不映射 block inset,
+  // 故用 html.elem 的 div+style 实现缩进:N 级标题缩 (N-1)*2em,其下内容缩 N*2em)
+  // / Indent by heading level. Since HTML export drops block inset, wrap
+  // headings and paragraphs with html.elem divs carrying margin-left.
+  show heading: it => {
+    html.elem("div", attrs: (style: "margin-left: " + str(2 * (it.level - 1)) + "em",))[#it]
+  }
+  show selector.or(par, enum, list, table): it => context {
+    let h = query(selector(heading).before(here())).at(-1, default: none)
+    if h == none {
+      it
+    } else {
+      html.elem("div", attrs: (style: "margin-left: " + str(2 * h.level) + "em",))[#it]
+    }
+  }
+
+  body
+ } else {
+  body
+ }
 
 }
 
