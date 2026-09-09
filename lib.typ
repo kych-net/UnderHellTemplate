@@ -17,6 +17,49 @@
 // 实现"N 级标题及其下内容缩进 N-1 级"(参考 TwilightBook / 论坛方案)。
 // / Nested indent: wrap body by heading depth so each level's content is
 // indented one more step (based on the TwilightBook approach).
+#let 是标题(it) = it.func() == heading
+
+// 嵌套缩进+参考线:按标题层级递归包装为逐级左缩进的块,
+// 每层左侧绘制一条参考线(参考 TwilightBook nest-block / 论坛方案)。
+// / Nested indent with a left guide line per level (recursive wrapper).
+#let 嵌套参考线(body, depth: 1, inset: 2em, line-stroke: none) = {
+  let 包装 = (标题, 内容) => {
+    block(
+      stroke: (left: line-stroke),
+      inset: (left: inset),
+    )[
+      #标题
+      #嵌套参考线(depth: depth + 1, 内容, inset: inset, line-stroke: line-stroke)
+    ]
+  }
+  let 标题 = none
+  let 章节 = ()
+  for it in body.at("children", default: ()) {
+    if 是标题(it) and it.at("depth") < depth {
+      if 标题 != none {
+        包装(标题, 章节.join())
+        标题 = none
+        章节 = ()
+      }
+      it
+    } else if 是标题(it) and it.at("depth") == depth {
+      if 标题 != none {
+        包装(标题, 章节.join())
+        标题 = none
+        章节 = ()
+      }
+      标题 = it
+    } else if 标题 != none {
+      章节.push(it)
+    } else {
+      it
+    }
+  }
+  if 标题 != none {
+    包装(标题, 章节.join())
+  }
+}
+
 // 网页模式样式表:仿标准 PDF 视觉(由 web 模式注入 <style>)
 // / Web stylesheet: mirrors the standard PDF look (injected by web mode).
 #let read_web_css() = read("web.css")
@@ -716,9 +759,10 @@
 
   body
  } else {
-  // PDF 各模式:同样按标题层级缩进,每级 2 字符(2em)
-  // 论坛方案:标题与段落/列表/表格分别包 block(inset)(PDF 支持 inset)
-  // / PDF modes: same indentation by heading level, 2em per level.
+  // 双栏 PDF(普通/打印):按标题层级缩进(每级 2 个空格宽,≈4pt),
+  // 不添加参考线(论坛方案:标题与段落/列表/表格分别包 block inset)。
+  // / Two-column PDFs: indent by heading level (2 spaces ≈ 4pt per level),
+  // without guide lines (forum approach: wrap heading & par/enum/table).
   show heading: it => {
     block(inset: (left: 4pt * (it.level - 1)), it)
   }
