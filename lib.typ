@@ -716,6 +716,21 @@
 
   body
  } else {
+  // PDF 各模式:同样按标题层级缩进,每级 2 字符(2em)
+  // 论坛方案:标题与段落/列表/表格分别包 block(inset)(PDF 支持 inset)
+  // / PDF modes: same indentation by heading level, 2em per level.
+  show heading: it => {
+    block(inset: (left: 2em * (it.level - 1)), it)
+  }
+  show selector.or(par, enum, list, table): it => context {
+    let h = query(selector(heading).before(here())).at(-1, default: none)
+    if h == none {
+      it
+    } else {
+      block(inset: (left: 2em * h.level), it)
+    }
+  }
+
   body
  }
 
