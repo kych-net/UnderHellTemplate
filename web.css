@@ -6,9 +6,8 @@
   --uh-ink: #2b2b2b;
 }
 html {
-  /* 与 PDF 相同的羊皮纸背景图(由 make web 复制到输出目录);回退纯色 */
-  background: var(--uh-paper) url("background.jpg") repeat-y top center;
-  background-size: 100% auto;
+  /* 与 PDF 背景图主色一致(background.jpg 取样 ≈ #f3ead7) */
+  background: var(--uh-paper);
 }
 body {
   max-width: 46em;
