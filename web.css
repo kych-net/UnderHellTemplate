@@ -1,0 +1,67 @@
+/* 网页模式样式:仿标准 PDF 视觉(单栏、羊皮纸底色、深红标题、楷体正文) */
+:root {
+  --uh-red: #8b0000;
+  --uh-yellow: #d4a017;
+  --uh-paper: #f4eedd;   /* 与 PDF background.jpg 的主色一致 */
+  --uh-ink: #2b2b2b;
+}
+html {
+  /* 与 PDF 相同的羊皮纸背景图(由 make web 复制到输出目录);回退纯色 */
+  background: var(--uh-paper) url("background.jpg") repeat-y top center;
+  background-size: 100% auto;
+}
+body {
+  max-width: 46em;
+  margin: 0 auto;
+  padding: 2.5em 1.5em 5em;
+  font-family: "LXGW WenKai", "LXGW WenKai Mono", "Kaiti SC", "STKaiti", "Noto Serif CJK SC", serif;
+  color: var(--uh-ink);
+  line-height: 1.75;
+  font-size: 17px;
+}
+/* 层级缩进:一级标题不缩进;N 级标题及其下内容缩进 N-1 级 */
+body { --uh-indent: 2em; }
+h2, .lv-2 { margin-left: var(--uh-indent); }
+h3, .lv-3 { margin-left: calc(var(--uh-indent) * 2); }
+h4, .lv-4 { margin-left: calc(var(--uh-indent) * 3); }
+h5, .lv-5 { margin-left: calc(var(--uh-indent) * 4); }
+h6, .lv-6 { margin-left: calc(var(--uh-indent) * 5); }
+
+/* 标题:深红 + 楷体(标题字体),层级仿 PDF */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--uh-red);
+  font-family: "DuanNingMaoBiXiaoKai", "Kaiti SC", "STKaiti", "LXGW WenKai", serif;
+  font-weight: 600;
+  margin: 1.4em 0 0.6em;
+}
+h1 { font-size: 1.9em; text-align: center; }
+h2 {
+  font-size: 1.5em;
+  border-bottom: 2px solid var(--uh-yellow);  /* 仿 PDF 黄色下划线 */
+  padding-bottom: 0.15em;
+}
+h3 { font-size: 1.3em; }
+h4 { font-size: 1.15em; border-left: 4px solid var(--uh-yellow); padding-left: 0.4em; }
+h5 { font-size: 1.05em; font-style: italic; }
+h6 { font-size: 0.95em; }
+/* 封面标题块 */
+.uh-cover { text-align: center; margin: 3em 0 2em; }
+.uh-title {
+  font-size: 2.6em !important;
+  color: var(--uh-red) !important;
+  border: none !important;
+  margin: 0 !important;
+  letter-spacing: 0.08em;
+}
+.uh-subtitle { color: #666; font-size: 1.1em; margin-top: 0.6em; }
+/* 表格:仿 PDF 细灰边框 */
+table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+td, th { border: 0.5pt solid #bbb; padding: 6px 10px; }
+/* 引用/提示框近似 */
+blockquote { border-left: 4px solid var(--uh-yellow); margin: 1em 0; padding: 0.2em 1em; background: #efe7d2; }
+/* 图片居中 */
+img { max-width: 100%; height: auto; display: block; margin: 1em auto; }
+/* 内联代码 */
+code { background: #ece5d3; padding: 0.1em 0.35em; border-radius: 3px; font-size: 0.9em; }
+/* 元素(核心概念):深红 + 标题字体,与 PDF 一致 */
+.uh-element { color: var(--uh-red); font-family: "DuanNingMaoBiXiaoKai", "Kaiti SC", "STKaiti", serif; }

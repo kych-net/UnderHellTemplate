@@ -9,6 +9,15 @@
 #let 品牌 = smallcaps("地狱之下") // 品牌文本(小型大写)/ Brand text (smallcaps)
 
 // 页脚内容生成器 / Footer content generator
+// 是否为网页编译(--input web=true)/ Whether compiling for web output
+#let is_web() = "web" in sys.inputs and sys.inputs.web == "true"
+#let is-web-target() = is_web()
+
+// 网页模式样式表:仿标准 PDF 视觉(由 web 模式注入 <style>)
+// / Web stylesheet: mirrors the standard PDF look (injected by web mode).
+#let read_web_css() = read("web.css")
+
+
 // 第 1 页之后显示页脚图片与页码 / Show footer image and page number after page 1
 #let footer-content = context {
    if here().page() > 1 {
@@ -128,7 +137,9 @@
   } else {
    // 普通模式:渲染内联文本(不换行)。labels 由调用方在想被引用处显式添加。
    // / Normal mode: render inline text (no line break).
-   if f != none {
+   if is_web() {
+    html.elem("span", attrs: (class: "uh-element",))[#term]
+   } else if f != none {
     box[
      #text(fill: darkred, font: f)[#term]
     ]
@@ -164,7 +175,10 @@
   // a hover popup via <span title="未定义">; on PDF just render the term.
   let 已定义 = query(label(id-str)).len() > 0
   let is-html = "html" in sys.inputs and sys.inputs.html == "true"
-  if 已定义 {
+  if 已定义 and is_web() {
+   // 网页模式:链接 + 深红/楷体样式 class(与 PDF 视觉一致)
+   link(label(id-str), html.elem("span", attrs: (class: "uh-element",))[#term])
+  } else if 已定义 {
    if f != none {
     link(label(id-str))[
      #set text(fill: darkred, font: f)
@@ -387,6 +401,7 @@
        lang: "en",
        print: "print" in sys.inputs and sys.inputs.print == "true",
        screen: "screen" in sys.inputs and sys.inputs.screen == "true",
+       web: "web" in sys.inputs and sys.inputs.web == "true",
        元素系统: if "元素系统" in sys.inputs and sys.inputs.元素系统 != "" { sys.inputs.元素系统 } else { "普通" },
        元素系统数据: none,
  body) = {
@@ -507,7 +522,18 @@
 
  // 根据模式构造页面参数(必须在 if 块外 set,否则词法作用域不延伸)
  // Build page args based on mode (must set outside if block due to lexical scoping)
- let page-args = if print {
+ let page-args = if web {
+  // 网页模式:单栏、无页码、无页面背景(视觉样式由注入的 CSS 提供)
+  // Web mode: single column, no page number, no page background (styles via CSS)
+  (
+   flipped: false,
+   margin: (top: 0pt, bottom: 0pt, left: 0pt, right: 0pt),
+   numbering: none,
+   columns: 1,
+   background: none,
+   footer: none,
+  )
+ } else if print {
   // 打印模式:双栏、宽边距(装订余量)、无背景、简化页脚(仅页码)
   // Print mode: two columns, wider margins (binding), no background, simple footer
   (
@@ -564,7 +590,18 @@
  }
 
  // 封面页 / Front page
- if print {
+ if web {
+  // 网页模式:不渲染整页封面,仅一个标题块(样式仿 PDF 封面)
+  // Web mode: no full-page cover, just a heading block styled like the PDF cover
+  html.elem("header", attrs: (class: "uh-cover",))[
+   #if add-title {
+    html.elem("h1", attrs: (class: "uh-title",))[#upper(title)]
+   }
+   #if subtitle.len() > 0 {
+    html.elem("p", attrs: (class: "uh-subtitle",))[#subtitle #if not fancy-author {"by " + author}]
+   }
+  ]
+ } else if print {
   // 打印模式封面:纯白背景,黑色文字,无装饰图 / Print cover: white bg, black text
   page(background: none, margin: (top: 40mm, bottom: 20mm), columns: 1)[
    #if add-title {
@@ -650,6 +687,13 @@
   (:)
  }
  show emph: set text(..italic-args)
+
+ // 网页模式:注入仿 PDF 的样式表(单栏、羊皮纸底色、深红标题、楷体正文)
+ // Web mode: inject a PDF-like stylesheet (single column, parchment bg,
+ // dark-red headings, kai body font).
+ if web {
+  html.elem("style", "/*UH_WEB_CSS*/")
+ }
 
  body
 
