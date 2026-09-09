@@ -1,2 +1,3 @@
 example/*.pdf
-test/
+test/webfonts/*.woff2
+webfonts/*.woff2
