@@ -87,8 +87,6 @@ code { background: #ece5d3; padding: 0.1em 0.35em; border-radius: 3px; font-size
     background: #efe7d2;
     border-right: 1px solid #ddd6c0;
   }
-  .uh-toc-inner a { text-decoration: none; color: inherit; }
-  .uh-toc-inner a:hover { color: var(--uh-red); }
   body { margin-left: 17em; }
 }
 @media (max-width: 1099px) {
