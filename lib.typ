@@ -301,10 +301,23 @@
 // pass `--input 隐藏TODO=true` at compile time to hide them entirely.
 // Each use records its location and content for `#TODO表格`.
 #let _TODO登记 = state("TODO登记", ())
-#let TODO(body) = {
+#let _TODO序号-state = state("TODO序号", 0)
+#let TODO(body, id: none) = {
+ if id != none {
+  // 显式编号路径(与 待办.csv 编号一致):无序号计数、稳定锚点 todo-<id>
+  let 锚 = "todo-" + str(id)
+  if is_web() {
+   html.elem("span", attrs: (class: "uh-todo", id: 锚, ))[
+    #text(fill: orange)[#body]
+   ]
+  } else {
+   [#label(锚)#text(fill: orange)[#body]]
+  }
+ } else {
  context {
   // 登记(供 #TODO表格 汇总)/ Register for the TODO table
   let 页 = here().page()
+  let 编号 = _TODO登记.get().len() + 1
   _TODO登记.update((.._TODO登记.get(), (页面: 页, 内容: body)))
   if "隐藏TODO" in sys.inputs and sys.inputs.隐藏TODO == "true" {
    []
@@ -317,10 +330,13 @@
    }
   }
  }
+ }
 }
 
-// TODO表格:渲染包含 编号(ID)、位置、TODO 内容 的表格。
-// / TODO table: render a table with 编号(ID)、位置、TODO 内容.
+// TODO表格:渲染包含 编号(ID)、位置、TODO 内容 的表格;
+// 位置列为可点击链接,直接跳转到该 TODO 在正文中的位置。
+// / TODO table: render a table with 编号(ID)、位置、TODO 内容; the location
+// column is a clickable link that jumps to the TODO's position in the body.
 #let TODO表格() = {
  context {
   let d = _TODO登记.get()
@@ -329,7 +345,15 @@
   } else {
    let rows = range(d.len()).map(k => {
     let it = d.at(k)
-    ([#(k + 1)], [#it.页面], [#it.内容])
+    let 锚 = "todo-" + str(k + 1)
+    let 位置 = if is_web() {
+     html.elem("a", attrs: (href: "#" + 锚,))[#it.页面]
+    } else {
+     link(label(锚))[
+      #text(font: "LXGW WenKai Mono", size: 0.85em)[#it.页面]
+     ]
+    }
+    ([(#k + 1)], [位置(#位置)], [#it.内容])
    })
    table(
     columns: (auto, auto, 1fr),
