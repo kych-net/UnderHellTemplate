@@ -1171,7 +1171,8 @@ All original material in this work is copyright by the respective authors and pu
  if "web" in sys.inputs and sys.inputs.web == "true" {
   // 网页:浮动目录 — 宽屏固定左侧,窄屏吸顶(CSS 控制)
   html.elem("aside", attrs: (class: "uh-toc",))[
-   outline(title: text(size: 1.2em, fill: darkred, weight: "bold")[目录])
+   html.elem("div", attrs: (class: "uh-toc-head",))[目录]
+   html.elem("div", attrs: (class: "uh-toc-body",))[outline()]
   ]
  } else {
   page(columns: 1, margin: (left: 30mm, right: 30mm, top: 30mm, bottom: 30mm))[
