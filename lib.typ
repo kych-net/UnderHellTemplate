@@ -270,6 +270,15 @@
 #let 评论(body) = {
  if "隐藏评论" in sys.inputs and sys.inputs.隐藏评论 == "true" {
   []
+ } else if is_web() {
+  // 网页:仿 wikidot "行评论浮泡" — 正文一个带角标的小触发点,
+  // 悬停/聚焦时在旁边弹出浮泡面板显示评论内容。
+  // / Web: mimics a wikidot "line-comment bubble" — a small inline
+  // trigger; hovering/focusing reveals a floating panel with the comment.
+  html.elem("span", attrs: (class: "uh-comment",))[
+   #html.elem("span", attrs: (class: "uh-comment-trigger", tabindex: "0",))[?]
+   #html.elem("span", attrs: (class: "uh-comment-panel",))[#body]
+  ]
  } else {
   context {
    let f = _元素字体.get()

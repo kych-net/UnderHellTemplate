@@ -132,4 +132,34 @@ code { background: #ece5d3; padding: 0.1em 0.35em; border-radius: 3px; font-size
 }
 
 /* 评论:灰色标题字体(与 PDF 一致) */
-.uh-comment { color: #999; font-family: "duan-kaixiao", "Kaiti SC", "STKaiti", serif; }
+/* 行评论:仿 wikidot 浮泡 — 触发点(带红色小圆底),悬停/聚焦弹出面板 */
+.uh-comment { position: relative; display: inline; }
+.uh-comment-trigger {
+  display: inline-block;
+  width: 1em; height: 1em;
+  line-height: 1em;
+  text-align: center;
+  border-radius: 50%;
+  background: var(--uh-red, #9d2b2b);
+  color: #fff;
+  font-size: 0.8em;
+  cursor: help;
+  user-select: none;
+  vertical-align: super;
+}
+.uh-comment-panel {
+  display: none;
+  position: absolute;
+  left: 1.4em; bottom: calc(100% + 0.3em);
+  min-width: 11em; max-width: 24em;
+  background: #f7f2e7;
+  border: 1px solid #ddd6c0;
+  border-radius: 0.5em;
+  padding: 0.4em 0.7em;
+  box-shadow: 0 4px 14px rgba(0,0,0,.18);
+  font-family: "duan-kaixiao", "Kaiti SC", "STKaiti", serif;
+  color: #55503e;
+  z-index: 40;
+}
+.uh-comment-trigger:hover + .uh-comment-panel,
+.uh-comment-trigger:focus + .uh-comment-panel { display: block; }
