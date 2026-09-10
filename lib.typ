@@ -304,14 +304,19 @@
 #let _TODO序号-state = state("TODO序号", 0)
 #let TODO(body, id: none) = {
  if id != none {
-  // 显式编号路径(与 待办.csv 编号一致):无序号计数、稳定锚点 todo-<id>
+  // 显式编号路径(与 待办.csv 编号一致):锚点固定 todo-<id>;
+  // 同时登记到 _TODO登记(供 #TODO表格 汇总)。
   let 锚 = "todo-" + str(id)
+  context {
+   let 页 = here().page()
+   _TODO登记.update((.._TODO登记.get(), (页面: 页, 锚: 锚, 内容: body)))
+  }
   if is_web() {
    html.elem("span", attrs: (class: "uh-todo", id: 锚, ))[
-    #text(fill: orange)[#body]
+    #text(fill: orange)[#body]#label(锚)
    ]
   } else {
-   [#label(锚)#text(fill: orange)[#body]]
+   [#text(fill: orange)[#body]#label(锚)]
   }
  } else {
  context {
@@ -337,34 +342,67 @@
 // 位置列为可点击链接,直接跳转到该 TODO 在正文中的位置。
 // / TODO table: render a table with 编号(ID)、位置、TODO 内容; the location
 // column is a clickable link that jumps to the TODO's position in the body.
-#let TODO表格() = {
- context {
+#let TODO表格(数据: none) = {
+ // 数据:((编号, 位置文件:行, TODO 内容),) 序列(通常来自 待办.csv)。
+ // 数据为 none 且运行期登记为空 → 显示"当前无 #TODO"。
+ // 位置列按"编号 ↔ 正文锚点 todo-<编号>"链接:
+ //   web 用 #锚 href;PDF 用 label 链接(仅存在该校验通过时)。
+ let 渲染单元格 = (n, 位置, 内容) => {
+  let 位置列 = context {
+   if is_web() {
+    if 位置.contains("内容/主行星") {
+     raw(位置)
+    } else {
+     html.elem("a", attrs: (href: "#todo-" + str(n),))[#raw(位置)]
+    }
+   } else {
+    let 锚 = "todo-" + str(n)
+    if query(label(锚)).len() > 0 {
+     link(label(锚))[
+      #text(font: "LXGW WenKai Mono", size: 0.85em)[#位置]
+     ]
+    } else {
+     raw(位置)
+    }
+   }
+  }
+  ([#(n)], [#位置列], [#eval("[" + 内容 + "]", mode: "markup", scope: (元素: 元素, 给色: none))])
+ }
+
+ if 数据 != none {
+  table(
+   columns: (auto, auto, 1fr),
+   table.header([编号], [位置], [TODO 内容]),
+   ..数据.map(row => 渲染单元格(row.at(0), row.at(1), row.at(2))).flatten(),
+  )
+ } else {
   let d = _TODO登记.get()
   if d.len() == 0 {
    [当前无 #TODO。]
   } else {
-   let rows = range(d.len()).map(k => {
-    let it = d.at(k)
-    let 锚 = "todo-" + str(k + 1)
-    let 位置 = if is_web() {
-     html.elem("a", attrs: (href: "#" + 锚,))[#it.页面]
-    } else {
-     link(label(锚))[
-      #text(font: "LXGW WenKai Mono", size: 0.85em)[#it.页面]
-     ]
-    }
-    ([(#k + 1)], [位置(#位置)], [#it.内容])
-   })
    table(
     columns: (auto, auto, 1fr),
     table.header([编号], [位置(页码)], [TODO 内容]),
-    ..rows.flatten(),
+    ..range(d.len()).map(k => {
+     let it = d.at(k)
+     let 锚 = if "锚" in it { it.锚 } else { "todo-" + str(k + 1) }
+     let 位置 = if is_web() {
+      html.elem("a", attrs: (href: "#" + 锚,))[跳转 ↗]
+     } else if query(label(锚)).len() > 0 {
+      link(label(锚))[
+       #text(font: "LXGW WenKai Mono", size: 0.85em)[#it.页面]
+      ]
+     } else {
+      [#it.页面]
+     }
+     ([#(k + 1)], [#位置], [#it.内容])
+    }).flatten(),
    )
   }
  }
 }
 
-// 设置元素系统数据(CSV 读取结果)/ Set element-system data (csv() result)
+// 设置元素系统数据// 设置元素系统数据// 设置元素系统数据(CSV 读取结果)/ Set element-system data (csv() result)
 #let set-元素系统数据(data) = 元素系统数据-state.update(data)
 
 // ------------------------------------------------------------
