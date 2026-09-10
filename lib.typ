@@ -824,6 +824,12 @@
   }
 
   body
+  // 页面底部:ICP 备案号(链接到工信部备案系统)
+  html.elem("footer", attrs: (class: "uh-icp",))[
+   #html.elem("a", attrs: (href: "https://beian.miit.gov.cn/", target: "_blank",))[
+    京ICP备2026033372号-1
+   ]
+  ]
  } else {
   // 双栏 PDF(普通/打印):按标题层级缩进(每级 2 个空格宽,≈4pt),
   // 不添加参考线(论坛方案:标题与段落/列表/表格分别包 block inset)。

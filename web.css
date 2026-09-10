@@ -169,3 +169,12 @@ code { background: #ece5d3; padding: 0.1em 0.35em; border-radius: 3px; font-size
   .uh-comment-trigger:hover + .uh-comment-panel,
   .uh-comment-trigger:focus + .uh-comment-panel { display: inline-block; }
 }
+/* 页面底部 ICP 备案号 */
+.uh-icp {
+  margin: 3em 0 1.2em;
+  text-align: center;
+  font-size: 0.8em;
+  color: #55503e;
+}
+.uh-icp a { color: inherit; text-decoration: none; }
+.uh-icp a:hover { color: var(--uh-red); }
