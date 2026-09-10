@@ -1,4 +1,11 @@
 /* 网页模式样式:仿标准 PDF 视觉(单栏、羊皮纸底色、深红标题、楷体正文) */
+/* 行评论字体:方正赵佶瘦金书(自托管全字库) */
+@font-face {
+  font-family: "zhaoji-shoujin";
+  src: url("webfonts/zhaoji-shoujin.woff2") format("woff2");
+  font-display: swap;
+}
+
 /* 标题字体子集(自托管 woff2,由 make web 复制到 webfonts/) */
 @font-face {
   font-family: "duan-kaixiao";
@@ -151,7 +158,7 @@ code { background: #ece5d3; padding: 0.1em 0.35em; border-radius: 3px; font-size
   border-radius: 0.5em;
   padding: 0.4em 0.7em;
   box-shadow: 0 4px 14px rgba(0,0,0,.18);
-  font-family: "duan-kaixiao", "Kaiti SC", "STKaiti", serif;
+  font-family: "zhaoji-shoujin", "FZZhaoJiShouJinShuS", "方正赵佶瘦金书 简", "Kaiti SC", serif;
   color: #55503e;
   z-index: 40;
 }

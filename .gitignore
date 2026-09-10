@@ -1,3 +1,4 @@
 example/*.pdf
 test/webfonts/*.woff2
 webfonts/*.woff2
+!webfonts/zhaoji-shoujin.woff2

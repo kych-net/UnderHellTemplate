@@ -280,14 +280,8 @@
    #html.elem("span", attrs: (class: "uh-comment-panel",))[#body]
   ]
  } else {
-  context {
-   let f = _元素字体.get()
-   if f != none {
-    text(fill: gray, font: f)[#body]
-   } else {
-    text(fill: gray)[#body]
-   }
-  }
+  // 评论字体:方正赵佶瘦金书(装在系统字体,无则回退默认)
+  text(fill: gray, font: ("FZZhaoJiShouJinShuS", "方正赵佶瘦金书 简"))[#body]
  }
 }
 
