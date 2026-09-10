@@ -276,7 +276,7 @@
   // / Web: mimics a wikidot "line-comment bubble" — a small inline
   // trigger; hovering/focusing reveals a floating panel with the comment.
   html.elem("span", attrs: (class: "uh-comment",))[
-   #html.elem("span", attrs: (class: "uh-comment-trigger", tabindex: "0",))[?]
+   #html.elem("span", attrs: (class: "uh-comment-trigger", tabindex: "0",))[💬]
    #html.elem("span", attrs: (class: "uh-comment-panel",))[#body]
   ]
  } else {
@@ -1195,7 +1195,7 @@ All original material in this work is copyright by the respective authors and pu
  if "web" in sys.inputs and sys.inputs.web == "true" {
   // 网页:浮动目录 — 宽屏固定左侧,窄屏吸顶(CSS 控制)
   html.elem("aside", attrs: (class: "uh-toc",))[
-   #html.elem("div", attrs: (class: "uh-toc-head",))[目录]
+   #html.elem("button", attrs: (class: "uh-toc-head", "aria-expanded": "false"))[目录]
    #html.elem("div", attrs: (class: "uh-toc-body",))[
     #outline()
    ]
