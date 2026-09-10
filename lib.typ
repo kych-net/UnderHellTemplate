@@ -300,109 +300,70 @@
 // / TODO: mark pending items in the header font, highlighted orange;
 // pass `--input 隐藏TODO=true` at compile time to hide them entirely.
 // Each use records its location and content for `#TODO表格`.
-#let _TODO登记 = state("TODO登记", ())
-#let _TODO序号-state = state("TODO序号", 0)
 #let TODO(body, id: none) = {
- if id != none {
-  // 显式编号路径(与 待办.csv 编号一致):锚点固定 todo-<id>;
-  // 同时登记到 _TODO登记(供 #TODO表格 汇总)。
-  let 锚 = "todo-" + str(id)
-  context {
-   let 页 = here().page()
-   _TODO登记.update((.._TODO登记.get(), (页面: 页, 锚: 锚, 内容: body)))
-  }
-  if is_web() {
-   html.elem("span", attrs: (class: "uh-todo", id: 锚, ))[
-    #text(fill: orange)[#body]#label(锚)
-   ]
-  } else {
-   [#text(fill: orange)[#body]#label(锚)]
-  }
+ if "隐藏TODO" in sys.inputs and sys.inputs.隐藏TODO == "true" {
+  []
  } else {
- context {
-  // 登记(供 #TODO表格 汇总)/ Register for the TODO table
-  let 页 = here().page()
-  let 编号 = _TODO登记.get().len() + 1
-  _TODO登记.update((.._TODO登记.get(), (页面: 页, 内容: body)))
-  if "隐藏TODO" in sys.inputs and sys.inputs.隐藏TODO == "true" {
-   []
-  } else {
+  context {
+   // 登记用一个可定位的 metadata 元素:query 可靠、不依赖 state
+   // (网页导出里 state 连续 update 的可见性不可靠)。
+   let n = query(selector(metadata).before(here())).filter(m => m.value.键 == "uh-todo").len() + 1
+   let 锚 = "todo-" + str(n)
    let f = _元素字体.get()
-   if f != none {
+   let styled = if f != none {
     text(fill: orange, font: f)[#body]
    } else {
     text(fill: orange)[#body]
    }
+   let 登记 = metadata((键: "uh-todo", 序号: n, 内容: body, 页面: here().page()))
+   // metadata 需进入文档流才可被 query 定位(不可见)
+   if is_web() {
+    [
+     #登记
+     #html.elem("span", attrs: (class: "uh-todo", id: 锚,))[
+      #styled#label(锚)
+     ]
+    ]
+   } else {
+    [#登记#styled#label(锚)]
+   }
   }
- }
  }
 }
 
-// TODO表格:渲染包含 编号(ID)、位置、TODO 内容 的表格;
-// 位置列为可点击链接,直接跳转到该 TODO 在正文中的位置。
-// / TODO table: render a table with 编号(ID)、位置、TODO 内容; the location
-// column is a clickable link that jumps to the TODO's position in the body.
-#let TODO表格(数据: none) = {
- // 数据:((编号, 位置文件:行, TODO 内容),) 序列(通常来自 待办.csv)。
- // 数据为 none 且运行期登记为空 → 显示"当前无 #TODO"。
- // 位置列按"编号 ↔ 正文锚点 todo-<编号>"链接:
- //   web 用 #锚 href;PDF 用 label 链接(仅存在该校验通过时)。
- let 渲染单元格 = (n, 位置, 内容) => {
-  let 位置列 = context {
-   if is_web() {
-    if 位置.contains("内容/主行星") {
-     raw(位置)
-    } else {
-     html.elem("a", attrs: (href: "#todo-" + str(n),))[#raw(位置)]
-    }
-   } else {
-    let 锚 = "todo-" + str(n)
-    if query(label(锚)).len() > 0 {
-     link(label(锚))[
-      #text(font: "LXGW WenKai Mono", size: 0.85em)[#位置]
-     ]
-    } else {
-     raw(位置)
-    }
-   }
-  }
-  ([#(n)], [#位置列], [#eval("[" + 内容 + "]", mode: "markup", scope: (元素: 元素, 给色: none))])
- }
-
- if 数据 != none {
-  table(
-   columns: (auto, auto, 1fr),
-   table.header([编号], [位置], [TODO 内容]),
-   ..数据.map(row => 渲染单元格(row.at(0), row.at(1), row.at(2))).flatten(),
-  )
- } else {
-  let d = _TODO登记.get()
-  if d.len() == 0 {
+// TODO表格:直接收集正文里全部 #TODO(登记 metadata),渲染
+// 编号/位置/内容 三列表格;位置列为跳转到该 TODO 正文的链接。
+// / TODO table: collects every #TODO registered in the body (a locatable
+// metadata element per call) and renders an ID/location/content table;
+// the location column links back to the TODO's position.
+#let TODO表格() = {
+ context {
+  let items = query(metadata).filter(m => m.value.键 == "uh-todo")
+  if items.len() == 0 {
    [当前无 #TODO。]
   } else {
    table(
     columns: (auto, auto, 1fr),
-    table.header([编号], [位置(页码)], [TODO 内容]),
-    ..range(d.len()).map(k => {
-     let it = d.at(k)
-     let 锚 = if "锚" in it { it.锚 } else { "todo-" + str(k + 1) }
+    table.header([编号], [位置], [TODO 内容]),
+    ..items.enumerate().map(kv => {
+     let (k, it) = kv
+     let n = it.value.序号
+     let 锚 = "todo-" + str(n)
      let 位置 = if is_web() {
       html.elem("a", attrs: (href: "#" + 锚,))[跳转 ↗]
-     } else if query(label(锚)).len() > 0 {
-      link(label(锚))[
-       #text(font: "LXGW WenKai Mono", size: 0.85em)[#it.页面]
-      ]
      } else {
-      [#it.页面]
+      link(label(锚))[
+       #text(font: "LXGW WenKai Mono", size: 0.85em)[第 #(it.value.页面) 页]
+      ]
      }
-     ([#(k + 1)], [#位置], [#it.内容])
+     ([#n], [#位置], [#it.value.内容])
     }).flatten(),
    )
   }
  }
 }
 
-// 设置元素系统数据// 设置元素系统数据// 设置元素系统数据(CSV 读取结果)/ Set element-system data (csv() result)
+// 设置元素系统数据// 设置元素系统数据// 设置元素系统数据// 设置元素系统数据// 设置元素系统数据(CSV 读取结果)/ Set element-system data (csv() result)
 #let set-元素系统数据(data) = 元素系统数据-state.update(data)
 
 // ------------------------------------------------------------
