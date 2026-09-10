@@ -300,7 +300,7 @@
 // / TODO: mark pending items in the header font, highlighted orange;
 // pass `--input 隐藏TODO=true` at compile time to hide them entirely.
 // Each use records its location and content for `#TODO表格`.
-#let TODO(body, id: none) = {
+#let TODO(body) = {
  if "隐藏TODO" in sys.inputs and sys.inputs.隐藏TODO == "true" {
   []
  } else {
