@@ -71,3 +71,53 @@ img { max-width: 100%; height: auto; display: block; margin: 1em auto; }
 code { background: #ece5d3; padding: 0.1em 0.35em; border-radius: 3px; font-size: 0.9em; }
 /* 元素(核心概念):深红 + 标题字体,与 PDF 一致 */
 .uh-element { color: var(--uh-red); font-family: "duan-kaixiao", "DuanNingMaoBiXiaoKai", "Kaiti SC", "STKaiti", serif; }
+
+
+/* 浮动目录:宽屏固定左侧,窄屏吸顶 */
+.uh-toc {
+  font-size: 0.9em;
+}
+@media (min-width: 1100px) {
+  .uh-toc {
+    position: fixed;
+    left: 0; top: 0;
+    width: 16em; height: 100vh;
+    overflow-y: auto;
+    padding: 1.5em 1em;
+    background: #efe7d2;
+    border-right: 1px solid #ddd6c0;
+  }
+  .uh-toc-inner a { text-decoration: none; color: inherit; }
+  .uh-toc-inner a:hover { color: var(--uh-red); }
+  body { margin-left: 17em; }
+}
+@media (max-width: 1099px) {
+  .uh-toc {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    max-height: 6em;
+    overflow-y: auto;
+    background: #efe7d2;
+    border-bottom: 1px solid #ddd6c0;
+    padding: 0.4em 0.8em;
+  }
+}
+
+/* 提示框:仿 PDF(绿底,上下深红边) */
+.uh-tipbox {
+  background: #ddeedd;
+  border-top: 2pt solid var(--uh-red);
+  border-bottom: 2pt solid var(--uh-red);
+  padding: 10pt;
+  margin: 1em 0;
+}
+.uh-tipbox-title {
+  font-variant-caps: all-small-caps;
+  color: var(--uh-red);
+  font-weight: 700;
+  margin-bottom: 0.3em;
+}
+
+/* 评论:灰色标题字体(与 PDF 一致) */
+.uh-comment { color: #999; font-family: "duan-kaixiao", "Kaiti SC", "STKaiti", serif; }

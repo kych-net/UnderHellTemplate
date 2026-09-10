@@ -237,7 +237,7 @@
      #term
     ]
    }
-  } else if is-html {
+  } else if is-html or is_web() {
    if f != none {
     html.elem("span", attrs: (title: "未定义",))[
      #set text(fill: darkred, font: f)
@@ -633,7 +633,8 @@
 
  // 副标题非空时追加换行,便于排版 / Append newline to subtitle if non-empty
  if subtitle.len() > 0 {
-  subtitle = subtitle + "\n"
+  subtitle = subtitle + "
+"
  }
 
  // 封面页 / Front page
@@ -741,6 +742,9 @@
  if web {
   html.elem("style", "/*UH_WEB_CSS*/")
 
+  // 修 typst html 导出 align() 内容丢失:重建其正文
+  show align: it => it.body
+
   // 按标题层级缩进(论坛方案思想;HTML 导出不映射 block inset,
   // 故用 html.elem 的 div+style 实现缩进):每级 2 个空格宽(半角空格
   // 实测 ≈2pt@12pt,即每级 4pt):N 级标题缩 (N-1) 级,其下内容缩 N 级。
@@ -830,7 +834,14 @@
 //  contents - 框内内容 / Box contents
 //  breakable - 是否允许跨页,默认开启 / Whether the block can break across pages
 // ------------------------------------------------------------
-#let 提示框(title, contents, breakable: true) = block(
+#let 提示框(title, contents, breakable: true) = {
+ if "web" in sys.inputs and sys.inputs.web == "true" {
+  return html.elem("div", attrs: (class: "uh-tipbox",))[
+   #if title != none { html.elem("div", attrs: (class: "uh-tipbox-title",))[#title] }
+   #contents
+  ]
+ }
+ block(
  breakable: breakable,
  inset: 10pt,
  width: 100%,
@@ -844,6 +855,7 @@
 
  #align(left)[#contents]
 ]
+ }
 
 // ------------------------------------------------------------
 // 属性值换算工具 / Ability modifier utilities
@@ -1127,6 +1139,9 @@ All original material in this work is copyright by the respective authors and pu
 #let 世界纲要(body, display: none) = {
  let show-p = if display != none {
   display
+ } else if "web" in sys.inputs and sys.inputs.web == "true" {
+  // 网页构建:纲要默认隐藏(正文即纲);"--input 纲要=true" 可显式显示
+  "纲要" in sys.inputs and sys.inputs.纲要 == "true"
  } else if "纲要" in sys.inputs {
   sys.inputs.纲要 == "true"
  } else if "print" in sys.inputs {
@@ -1135,22 +1150,36 @@ All original material in this work is copyright by the respective authors and pu
   true
  }
  if show-p {
+  if "web" in sys.inputs and sys.inputs.web == "true" {
+   // 网页:直接输出正文(无页面包装)
+   body
+  } else {
   page(columns: 1, margin: (left: 30mm, right: 30mm, top: 30mm, bottom: 30mm))[
    #set text(size: 1.1em)
    #show heading: set align(center)
    #show par: set align(center)
    #body
   ]
+  }
  }
 }
 
 // ------------------------------------------------------------
 // 目录:单栏居中页 / Table of contents: single-column centered page
 // ------------------------------------------------------------
-#let 目录() = [
- #page(columns: 1, margin: (left: 30mm, right: 30mm, top: 30mm, bottom: 30mm))[
-  #align(center)[
-   #outline(title: text(size: 1.6em, fill: darkred, weight: "bold")[目录])
+#let 目录() = {
+ if "web" in sys.inputs and sys.inputs.web == "true" {
+  // 网页:浮动目录 — 宽屏固定左侧,窄屏吸顶(CSS 控制)
+  html.elem("aside", attrs: (class: "uh-toc",))[
+   html.elem("div", attrs: (class: "uh-toc-inner",))[
+    outline(title: text(size: 1.2em, fill: darkred, weight: "bold")[目录])
+   ]
   ]
- ]
-]
+ } else {
+  page(columns: 1, margin: (left: 30mm, right: 30mm, top: 30mm, bottom: 30mm))[
+   #align(center)[
+    #outline(title: text(size: 1.6em, fill: darkred, weight: "bold")[目录])
+   ]
+  ]
+ }
+}
