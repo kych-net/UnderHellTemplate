@@ -2,7 +2,7 @@
 /* 标题字体子集(自托管 woff2,由 make web 复制到 webfonts/) */
 @font-face {
   font-family: "duan-kaixiao";
-  src: url("webfonts/duan-kaixiao-subset.woff2") format("woff2");
+  src: url("webfonts/duan-kaixiao-full.woff2") format("woff2");
   font-display: swap;
 }
 
