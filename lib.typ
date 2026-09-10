@@ -238,17 +238,8 @@
     ]
    }
   } else if is-html or is_web() {
-   if f != none {
-    html.elem("span", attrs: (title: "未定义",))[
-     #set text(fill: darkred, font: f)
-     #term
-    ]
-   } else {
-    html.elem("span", attrs: (title: "未定义",))[
-     #set text(fill: darkred)
-     #term
-    ]
-   }
+   // 未定义网页分支:class 应用特殊格式样式,title 提供悬停"未定义"提示
+   html.elem("span", attrs: (class: "uh-element", title: "未定义",))[#term]
   } else {
    // PDF 下未定义概念照常渲染词;附一个未附着 label 以触发编译期 warning,
    // 提示该概念尚无定义小节(HTML 分支用弹窗提示,不在此报 warning)。
