@@ -148,6 +148,8 @@
 // back to id). The 普通 system reads the "默认" column; other systems look
 // up their column, falling back to "默认", then id.
 #let _元素字体 = state("元素字体", none)
+#let _正文字体-st = state("正文字体-state", ("LXGW WenKai Mono",))
+#let _评论字体 = state("评论字体", ("FZZhaoJiShouJinShuS", "方正赵佶瘦金书 简"))
 
 // 当前语言的正文字标点映射(由 地狱之下模板 按 lang 写入);空表则不替换。
 // 文档顶层用 `#show text` 读取它做渲染期替换;数字两侧与链接不受影响。
@@ -280,8 +282,14 @@
    #html.elem("span", attrs: (class: "uh-comment-panel",))[#body]
   ]
  } else {
-  // 评论字体:方正赵佶瘦金书(装在系统字体,无则回退默认)
-  text(fill: gray, font: ("FZZhaoJiShouJinShuS", "方正赵佶瘦金书 简"))[#body]
+  context {
+   let f = _评论字体.get()
+   if f != none {
+    text(fill: gray, font: f)[#body]
+   } else {
+    text(fill: gray)[#body]
+   }
+  }
  }
 }
 
@@ -347,7 +355,7 @@
       html.elem("a", attrs: (href: "#" + 锚,))[跳转 ↗]
      } else {
       link(label(锚))[
-       #text(font: "LXGW WenKai Mono", size: 0.85em)[第 #(it.value.页面) 页]
+       #text(font: _正文字体-st.get(), size: 0.85em)[第 #(it.value.页面) 页]
       ]
      }
      ([#n], [#位置], [#it.value.内容])
@@ -492,6 +500,11 @@
  let header-font-args = if header-fonts != none { (font: header-fonts) } else { (:) }
  // 元素默认使用标题字体 / Elements default to the header font
  _元素字体.update(header-fonts)
+ // 评论字体(从 toml)/ Comment fonts from toml
+ let comment-fonts = if "comment" in fonts-cfg { fonts-cfg.comment } else { none }
+ _评论字体.update(comment-fonts)
+ // 位置列等小代码用正文字体表 / Minor mono text uses body font list
+ _正文字体-st.update(body-fonts)
  // 斜体字体列表(支持回退)/ Italic font list (with fallback)
  let italic-fonts = if "italic" in fonts-cfg { fonts-cfg.italic } else { none }
 

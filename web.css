@@ -13,6 +13,7 @@
   font-display: swap;
 }
 
+/* 字体(由 web_post.py 从语言 toml 注入) KEY:UH_FONTS */
 :root {
   --uh-red: #8b0000;
   --uh-yellow: #d4a017;
@@ -27,7 +28,7 @@ body {
   max-width: 46em;
   margin: 0 auto;
   padding: 2.5em 1.5em 5em;
-  font-family: "LXGW WenKai", "LXGW WenKai Mono", "Kaiti SC", "STKaiti", "Noto Serif CJK SC", serif;
+  font-family: var(--uh-body-font);
   color: var(--uh-ink);
   line-height: 1.75;
   font-size: 17px;
@@ -158,7 +159,7 @@ code { background: #ece5d3; padding: 0.1em 0.35em; border-radius: 3px; font-size
   border-radius: 0.5em;
   padding: 0.4em 0.7em;
   box-shadow: 0 4px 14px rgba(0,0,0,.18);
-  font-family: "zhaoji-shoujin", "FZZhaoJiShouJinShuS", "方正赵佶瘦金书 简", "Kaiti SC", serif;
+  font-family: var(--uh-comment-font);
   color: #55503e;
   z-index: 40;
 }
