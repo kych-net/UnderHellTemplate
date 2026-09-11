@@ -149,6 +149,7 @@
 // up their column, falling back to "默认", then id.
 #let _元素字体 = state("元素字体", none)
 #let _正文字体-st = state("正文字体-state", ("LXGW WenKai Mono",))
+#let _目录字体 = state("目录字体", ("SetoFont", "瀬戸フォント"))
 #let _评论字体 = state("评论字体", ("FZZhaoJiShouJinShuS", "方正赵佶瘦金书 简"))
 
 // 当前语言的正文字标点映射(由 地狱之下模板 按 lang 写入);空表则不替换。
@@ -505,6 +506,9 @@
  _评论字体.update(comment-fonts)
  // 位置列等小代码用正文字体表 / Minor mono text uses body font list
  _正文字体-st.update(body-fonts)
+ // 目录字体(从 toml)/ Outline fonts from toml
+ let outline-fonts = if "outline" in fonts-cfg { fonts-cfg.outline } else { none }
+ _目录字体.update(outline-fonts)
  // 斜体字体列表(支持回退)/ Italic font list (with fallback)
  let italic-fonts = if "italic" in fonts-cfg { fonts-cfg.italic } else { none }
 
@@ -672,6 +676,12 @@
   // 网页模式:不渲染整页封面,仅一个标题块(样式仿 PDF 封面)
   // Web mode: no full-page cover, just a heading block styled like the PDF cover
   html.elem("header", attrs: (class: "uh-cover",))[
+   // 右上角固定导航:PDF 下载(GitHub 最新 release)+ 仓库链接
+   #html.elem("nav", attrs: (class: "uh-site",))[
+    #html.elem("a", attrs: (class: "uh-site-link", href: "https://github.com/kych-net/UnderHell/releases/latest", title: "下载 PDF(GitHub 最新发行版)", target: "_blank",))[PDF]
+    #html.elem("a", attrs: (class: "uh-site-link", href: "https://github.com/kych-net/UnderHell", title: "GitHub 仓库", target: "_blank",))[GitHub]
+    #html.elem("a", attrs: (class: "uh-site-link", href: "https://gitcode.com/CrossDark/UnderHell", title: "GitCode 仓库", target: "_blank",))[GitCode]
+   ]
    #if add-title {
     html.elem("h1", attrs: (class: "uh-title",))[#upper(title)]
    }
@@ -1213,10 +1223,16 @@ All original material in this work is copyright by the respective authors and pu
    ]
   ]
  } else {
-  page(columns: 1, margin: (left: 30mm, right: 30mm, top: 30mm, bottom: 30mm))[
-   #align(center)[
-    #outline(title: text(size: 1.6em, fill: darkred, weight: "bold")[目录])
+  context {
+   let f = _目录字体.get()
+   page(columns: 1, margin: (left: 30mm, right: 30mm, top: 30mm, bottom: 30mm))[
+    #text(font: f)[
+     #align(center)[
+      #text(fill: darkred, weight: "bold", size: 1.6em)[目录]
+     ]
+     #outline(title: none)
+    ]
    ]
-  ]
+  }
  }
 }

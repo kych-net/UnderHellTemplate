@@ -38,3 +38,6 @@ header = ["DuanNingMaoBiXiaoKai", "LXGW WenKai", "PingFang SC", "Hiragino Sans G
 italic = ["Sarasa Mono SC", "Sarasa Gothic SC", "LXGW WenKai Mono", "PingFang SC", "Hiragino Sans GB"]
 # 定义评论字体:方正赵佶瘦金书
 comment = ["FZZhaoJiShouJinShuS", "方正赵佶瘦金书 简", "LXGW WenKai", "PingFang SC"]
+# 定义目录字体:霞鹜文楷
+outline = ["LXGW WenKai", "LXGW WenKai Mono", "Kaiti SC", "PingFang SC"]
+
