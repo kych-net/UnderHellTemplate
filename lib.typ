@@ -312,7 +312,7 @@
    // (网页导出里 state 连续 update 的可见性不可靠)。
    let n = query(selector(metadata).before(here())).filter(m => m.value.键 == "uh-todo").len() + 1
    let 锚 = "todo-" + str(n)
-   let f = _元素字体.get()
+   let f = _评论字体.get()
    let styled = if f != none {
     text(fill: orange, font: f)[#body]
    } else {
@@ -359,7 +359,7 @@
        #text(font: _正文字体-st.get(), size: 0.85em)[第 #(it.value.页面) 页]
       ]
      }
-     ([#n], [#位置], [#it.value.内容])
+     ([#n], [#位置], [#text(font: _评论字体.get())[#it.value.内容]])
     }).flatten(),
    )
   }

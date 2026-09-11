@@ -206,3 +206,6 @@ code { background: #ece5d3; padding: 0.1em 0.35em; border-radius: 3px; font-size
   text-decoration: none;
 }
 .uh-site-link:hover { color: var(--uh-red); border-color: var(--uh-red); }
+/* 行内 TODO:瘦金体(同 评论 字体) */
+.uh-todo { color: var(--uh-orange, orange); font-family: var(--uh-comment-font); }
+:root { --uh-orange: #e07b00; }
