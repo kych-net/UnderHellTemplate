@@ -790,7 +790,20 @@
   // 实测 ≈2pt@12pt,即每级 4pt):N 级标题缩 (N-1) 级,其下内容缩 N 级。
   // / Indent by heading level: 2 space characters per level (≈4pt at 12pt).
   show heading: it => {
-    html.elem("div", attrs: (style: "margin-left: " + str(4 * (it.level - 1)) + "pt",))[#it]
+    // Typst html 导出对 level≥5 的 heading 会丢内容/错层(aria-level+1),
+    // 五/六级在通用缩进外单独输出:自行算编号,样式交给 web.css 的 .lv-5/.lv-6。
+    let 层 = it.level
+    if 层 >= 5 {
+     context {
+      let 编号 = numbering(it.numbering, ..counter(heading).at(here()))
+      let 前缀 = if 层 == 6 { "— " } else { "" }
+      html.elem("div", attrs: (role: "heading", "aria-level": str(层), class: "lv-" + str(层),))[
+       #text(..header-font-args, size: (if 层 == 5 { 1em } else if 层 == 6 { 0.95em }), fill: heading-fill, weight: "regular", style: (if 层 == 5 { "italic" } else { "normal" }))[#前缀#编号 #it.body]
+      ]
+     }
+    } else {
+      html.elem("div", attrs: (style: "margin-left: " + str(4 * (it.level - 1)) + "pt",))[#it]
+    }
   }
   show selector.or(par, enum, list, table): it => context {
     let h = query(selector(heading).before(here())).at(-1, default: none)

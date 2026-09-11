@@ -58,6 +58,18 @@ h3 { font-size: 1.3em; }
 h4 { font-size: 1.15em; border-left: 4px solid var(--uh-yellow); padding-left: 0.4em; }
 h5 { font-size: 1.05em; font-style: italic; }
 h6 { font-size: 0.95em; }
+/* 五/六级标题(显式 div[role=heading]) */
+.lv-5 {
+  font-size: 1.05em;
+  font-style: italic;
+  color: var(--uh-red);
+  margin-left: calc(var(--uh-indent) * 4);
+}
+.lv-6 {
+  font-size: 0.95em;
+  color: var(--uh-red);
+  margin-left: calc(var(--uh-indent) * 5);
+}
 /* 封面标题块 */
 .uh-cover { text-align: center; margin: 3em 0 2em; }
 .uh-title {
