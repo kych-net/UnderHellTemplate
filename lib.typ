@@ -1249,3 +1249,18 @@ All original material in this work is copyright by the respective authors and pu
   }
  }
 }
+
+// 导入:用 #include 引入另一个 .typ 文件,并通过 heading offset
+// 整体增加其标题层级(默认 +1)。被导入文件自行 #import 所需函数,
+// 不注入作用域、不解析文件文本。`路径` 以仓库根(--root)为基准,
+// 如 "文档/内容/怪动植物.typ";offset 只支持非负值(增加层级)。
+// / Import another .typ via #include, bumping all its heading levels by
+// `偏移` (default +1). The imported file imports its own helpers; no scope
+// injection, no source-text parsing. `路径` is relative to the repository
+// root (--root), e.g. "文档/内容/怪动植物.typ". Note: offset must be >= 0
+// (it only deepens headings), so the imported file should be written deeper.
+#let 导入(路径, 偏移: 1) = {
+  set heading(offset: 偏移)
+  include "/" + 路径
+}
+
