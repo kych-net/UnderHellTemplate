@@ -499,8 +499,9 @@
  let header-fonts = if "header" in fonts-cfg { fonts-cfg.header } else { none }
  // 构造 text() 的命名参数包,无配置时为空字典 / Build named args for text(); empty dict if none
  let header-font-args = if header-fonts != none { (font: header-fonts) } else { (:) }
- // 元素默认使用标题字体 / Elements default to the header font
- _元素字体.update(header-fonts)
+ // 元素使用标题字体(毛笔小楷)呈现,与正文等宽格线不复用。
+ // Elements use the header font (段宁毛笔小楷) — no longer locked to the body grid.
+ _元素字体.update(if header-fonts != none { header-fonts } else { none })
  // 评论字体(从 toml)/ Comment fonts from toml
  let comment-fonts = if "comment" in fonts-cfg { fonts-cfg.comment } else { none }
  _评论字体.update(comment-fonts)
@@ -764,7 +765,7 @@
  }
  set text(..text-args)
 
- // 斜体使用独立字体(如等距更紗黑體),优先级低于用户自定义
+// 斜体使用独立字体(如等距更紗黑體),优先级低于用户自定义
  // Italic text uses its own font (e.g. Sarasa Mono SC); user rules take precedence.
  // 注意:仅设置 font,不显式设 style——emph 自带 italic,显式 style 会干扰字体选变体
  // Note: set only font, not style; emph already carries italic, an explicit style
@@ -829,6 +830,7 @@
   show heading: it => {
     block(inset: (left: 4pt * (it.level - 1)), it)
   }
+  // 非段落块(列表/枚举/表格)保持原缩进逻辑 / Non-paragraph blocks keep original indent
   show selector.or(par, enum, list, table): it => context {
     let h = query(selector(heading).before(here())).at(-1, default: none)
     if h == none {
@@ -843,6 +845,53 @@
 
 }
 
+// ------------------------------------------------------------
+// 网格:把内容按等宽中文字体的格子对齐——每个格子宽高各 1em,
+// 一个汉字占 1 格,两个拉丁字母/数字占 1 格(需 LXGW WenKai Mono 等宽字体)。
+// 行距取 0 使每行恰好 1 格高(该字体上行+下行=1em)。显示网格:true 时叠加浅灰格线。
+// / Grid: align content to 1em cells — a CJK char fills one cell, two Latin
+// letters/digits fill one cell (needs a mono CJK font like LXGW WenKai Mono).
+// Zero leading makes each line exactly one cell tall. Draw faint lines when true.
+//  内容     - 传入的正文内容 / Content to lay out
+//  显示网格  - true 时绘制格线 / Draw grid lines when true
+//  格线      - 格线粗细(显示网格 时为真时生效)/ Grid-line weight
+// ------------------------------------------------------------
+#let 网格(内容, 显示网格: false, 格线: 0.4pt) = context {
+  let em = measure(text[地]).width
+  layout(size => {
+    // 可容纳的格子列数:向下取整,让整段占满整数格宽 / Cell columns, floored
+    let 列数 = calc.max(1, calc.floor(size.width / em))
+    let 行长 = 列数 * em
+    // 内容体:定宽为整数格宽;行距 0 → 每行恰好 1 格高
+    // Content block of whole-cell width; zero leading → one row per cell
+    let 内容体 = block(width: 行长)[
+      #set par(leading: 0em)
+      // 半角空格只有 0.5em,会断格;强制每个空格占满 1 格保持整格对齐
+      // A half-width space is 0.5em and breaks the cell; force it to fill 1em
+      #show regex(" "): box(width: 1em)
+      #内容
+    ]
+    let 高度 = measure(内容体).height
+    let 行数 = calc.max(1, calc.round(高度 / em))
+    // 格线表:叠加在内容下方(仅显示网格 时为真时渲染)/ Grid overlay behind content
+    let 线 = if 显示网格 {
+      place(
+        top + left,
+        table(
+          columns: (em,) * 列数,
+          rows: (em,) * 行数,
+          inset: 0pt,
+          stroke: (x: 格线 + gray, y: 格线 + gray),
+          ..range(列数 * 行数).map(_ => []),
+        ),
+      )
+    } else { none }
+    block(width: 行长)[
+      #线
+      #内容体
+    ]
+  })
+}
 
 // ------------------------------------------------------------
 // uhtab:生成地狱之下风格的表格区块 / UnderHell style table block
