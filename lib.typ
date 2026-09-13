@@ -182,7 +182,15 @@
    // In Typst @ references only target numbered, located elements (e.g.
    // heading), so we eval a heading embedding a literal `<id>` tag.
    let term-str = if type(term) == content { term.text } else { str(term) }
-   let src = "#heading(level: " + str(level) + ")[" + term-str + "] <" + id-str + ">"
+   // 用等号记号(=×level)构造标题,而非 #heading(level:) 显式调用:
+   // set heading(offset:) 只对记号标题生效,对显式 level 的 heading 无效,
+   // 故此处改用记号,使 #导入 的偏移能正确叠加到设定元素层级上。
+   // / Build the heading with marker syntax (=×level) instead of an explicit
+   // #heading(level:) call, because set heading(offset:) only applies to
+   // marker headings — explicit-level headings ignore it. This lets the
+   // offset from #导入 actually take effect on the 设定元素 level.
+   let 记号 = ("=" * level)
+   let src = 记号 + " " + term-str + (if id-str == "" { "" } else { " <" + id-str + ">" })
    eval(src, mode: "markup")
   } else {
    // 普通模式:渲染内联文本(不换行)。labels 由调用方在想被引用处显式添加。
