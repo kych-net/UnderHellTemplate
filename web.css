@@ -38,9 +38,10 @@ body { --uh-indent: 2em; }
 h2, .lv-2 { margin-left: var(--uh-indent); }
 h3, .lv-3 { margin-left: calc(var(--uh-indent) * 2); }
 h4, .lv-4 { margin-left: calc(var(--uh-indent) * 3); }
-h5, .lv-5 { margin-left: calc(var(--uh-indent) * 4); }
-h6, .lv-6 { margin-left: calc(var(--uh-indent) * 5); }
-h7, .lv-7 { margin-left: calc(var(--uh-indent) * 6); }
+/* 5 级起每级只步进 0.5em(约一个半角字),不再如低级每级 2em,避免过深 */
+h5, .lv-5 { margin-left: calc(var(--uh-indent) * 3.5); }
+h6, .lv-6 { margin-left: calc(var(--uh-indent) * 4); }
+h7, .lv-7 { margin-left: calc(var(--uh-indent) * 4.5); }
 
 /* 任意层级标题兜底基础样式:任何 <hx class="lv-x"> 都有标题色/字体/间距,
    覆盖 h8 及以上(缩进、字号的逐级细节由下方专规则细化)。 */
@@ -75,17 +76,17 @@ h7 { font-size: 0.9em; }
   font-size: 1.05em;
   font-style: italic;
   color: var(--uh-red);
-  margin-left: calc(var(--uh-indent) * 4);
+  margin-left: calc(var(--uh-indent) * 3.5);
 }
 .lv-6 {
   font-size: 0.95em;
   color: var(--uh-red);
-  margin-left: calc(var(--uh-indent) * 5);
+  margin-left: calc(var(--uh-indent) * 4);
 }
 .lv-7 {
   font-size: 0.9em;
   color: var(--uh-red);
-  margin-left: calc(var(--uh-indent) * 6);
+  margin-left: calc(var(--uh-indent) * 4.5);
 }
 /* 封面标题块 */
 .uh-cover { text-align: center; margin: 3em 0 2em; }
