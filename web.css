@@ -40,9 +40,20 @@ h3, .lv-3 { margin-left: calc(var(--uh-indent) * 2); }
 h4, .lv-4 { margin-left: calc(var(--uh-indent) * 3); }
 h5, .lv-5 { margin-left: calc(var(--uh-indent) * 4); }
 h6, .lv-6 { margin-left: calc(var(--uh-indent) * 5); }
+h7, .lv-7 { margin-left: calc(var(--uh-indent) * 6); }
+
+/* 任意层级标题兜底基础样式:任何 <hx class="lv-x"> 都有标题色/字体/间距,
+   覆盖 h8 及以上(缩进、字号的逐级细节由下方专规则细化)。 */
+/* Base style for any heading level <hx class="lv-x">, covering h8+. */
+[class^="lv-"] {
+  color: var(--uh-red);
+  font-family: "duan-kaixiao", "DuanNingMaoBiXiaoKai", "Kaiti SC", "STKaiti", serif;
+  font-weight: 600;
+  margin: 1.4em 0 0.6em;
+}
 
 /* 标题:深红 + 楷体(标题字体),层级仿 PDF */
-h1, h2, h3, h4, h5, h6 {
+h1, h2, h3, h4, h5, h6, h7 {
   color: var(--uh-red);
   font-family: "duan-kaixiao", "DuanNingMaoBiXiaoKai", "Kaiti SC", "STKaiti", serif;
   font-weight: 600;
@@ -58,6 +69,7 @@ h3 { font-size: 1.3em; }
 h4 { font-size: 1.15em; border-left: 4px solid var(--uh-yellow); padding-left: 0.4em; }
 h5 { font-size: 1.05em; font-style: italic; }
 h6 { font-size: 0.95em; }
+h7 { font-size: 0.9em; }
 /* 五/六级标题(显式 div[role=heading]) */
 .lv-5 {
   font-size: 1.05em;
@@ -69,6 +81,11 @@ h6 { font-size: 0.95em; }
   font-size: 0.95em;
   color: var(--uh-red);
   margin-left: calc(var(--uh-indent) * 5);
+}
+.lv-7 {
+  font-size: 0.9em;
+  color: var(--uh-red);
+  margin-left: calc(var(--uh-indent) * 6);
 }
 /* 封面标题块 */
 .uh-cover { text-align: center; margin: 3em 0 2em; }

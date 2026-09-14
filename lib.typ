@@ -798,20 +798,27 @@
   // 故用 html.elem 的 div+style 实现缩进):每级 2 个空格宽(半角空格
   // 实测 ≈2pt@12pt,即每级 4pt):N 级标题缩 (N-1) 级,其下内容缩 N 级。
   // / Indent by heading level: 2 space characters per level (≈4pt at 12pt).
-  show heading: it => {
-    // Typst html 导出对 level≥5 的 heading 会丢内容/错层(aria-level+1),
-    // 五/六级在通用缩进外单独输出:自行算编号,样式交给 web.css 的 .lv-5/.lv-6。
+  show heading: it => context {
     let 层 = it.level
-    if 层 >= 5 {
-     context {
-      let 编号 = numbering(it.numbering, ..counter(heading).at(here()))
-      let 前缀 = if 层 == 6 { "— " } else { "" }
-      html.elem("div", attrs: (role: "heading", "aria-level": str(层), class: "lv-" + str(层),))[
-       #text(..header-font-args, size: (if 层 == 5 { 1em } else if 层 == 6 { 0.95em }), fill: heading-fill, weight: "regular", style: (if 层 == 5 { "italic" } else { "normal" }))[#前缀#编号 #it.body]
+    // 用所在计数深度作为最终层级:offset 会把标题抬到原始层级之上,
+    // 单看 it.level 会漏掉被抬到五级以上的情况——统一用 max 覆盖。
+    // / Use the counter depth as the final level: offset can push a title above
+    // its declared level, so it.level alone misses pushed-deep ones.
+    let 深 = counter(heading).at(here()).len()
+    let 放 = calc.max(层, calc.max(深, 0))
+    let 编号 = if it.numbering != none { numbering(it.numbering, ..counter(heading).at(here())) } else { "" }
+    if 放 >= 5 {
+      // 手动重建头内容,绕开 Typst 导出对高层的错层/丢内容;编号自算,
+      // 样式交给 web.css(.lv-N)。六级加前缀破折号。x 级标题直接输出 <hx>。
+      // / Rebuild the heading ourselves to dodge export issues on high levels;
+      // emit a real <hN> for the true final level, no clamping. Styles live in web.css.
+      let 标 = 放
+      let 前缀 = if 放 == 6 { "— " } else { "" }
+      html.elem("h" + str(标), attrs: (class: "lv-" + str(标),))[
+       #text(..header-font-args, size: (if 标 == 5 { 1em } else if 标 == 6 { 0.95em } else { 0.9em }), fill: heading-fill, weight: "regular", style: (if 标 == 5 { "italic" } else { "normal" }))[#前缀#编号 #it.body]
       ]
-     }
     } else {
-      html.elem("div", attrs: (style: "margin-left: " + str(4 * (it.level - 1)) + "pt",))[#it]
+      html.elem("div", attrs: (style: "margin-left: " + str(4 * (放 - 1)) + "pt",))[#it]
     }
   }
   show selector.or(par, enum, list, table): it => context {
