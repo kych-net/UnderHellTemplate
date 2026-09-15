@@ -6,6 +6,21 @@
   font-display: swap;
 }
 
+/* 正文字体(完整版,自托管 woff2,由 make web 复制到 webfonts/) */
+@font-face {
+  font-family: "uh-lxgw-mono";
+  src: url("webfonts/lxgw-wenkai-mono.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+/* 粗体单独指定字体:霞鹜臻楷 GB(完整版),而非 LXGW(它无真 700) */
+@font-face {
+  font-family: "uh-zhenkai";
+  src: url("webfonts/zhenkai-gb.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+
 /* 标题字体子集(自托管 woff2,由 make web 复制到 webfonts/) */
 @font-face {
   font-family: "duan-kaixiao";
@@ -109,6 +124,8 @@ img { max-width: 100%; height: auto; display: block; margin: 1em auto; }
 code { background: #ece5d3; padding: 0.1em 0.35em; border-radius: 3px; font-size: 0.9em; }
 /* 元素(核心概念):深红 + 标题字体,与 PDF 一致 */
 .uh-element { color: var(--uh-red); font-family: "duan-kaixiao", "DuanNingMaoBiXiaoKai", "Kaiti SC", "STKaiti", serif; }
+/* 粗体:单独指定为霞鹜臻楷 GB(正文 LXGW WenKai Mono 无真 700) */
+strong, b { font-family: "uh-zhenkai", var(--uh-body-font); font-weight: 700; }
 
 
 /* 浮动目录:仿"行评论浮泡" — 静态小浮泡,悬停/聚焦展开目录面板 */

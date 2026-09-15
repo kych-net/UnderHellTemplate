@@ -1,4 +1,7 @@
 example/*.pdf
 test/webfonts/*.woff2
 webfonts/*.woff2
+# 例外:正文字体与粗体自托管需随仓库分发(其余 woff2 不提交)
 !webfonts/zhaoji-shoujin.woff2
+!webfonts/lxgw-wenkai-mono.woff2
+!webfonts/zhenkai-gb.woff2
