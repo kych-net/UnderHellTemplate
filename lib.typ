@@ -150,6 +150,12 @@
 #let _元素字体 = state("元素字体", none)
 #let _正文字体-st = state("正文字体-state", ("LXGW WenKai Mono",))
 #let _目录字体 = state("目录字体", ("SetoFont", "瀬戸フォント"))
+// 评论字体 = 瘦金书(FZZhaoJiShouJinShuS)。判断 PDF 是否真正用上它,
+// 以 Chrome/系统阅读器为准:它们能正确显示内嵌的该字库(CID/GB1 子集)。
+// VS Code 的 pdf.js 预览会对该子集回退为本机楷体,把评论显示成与正文一致,
+// 属查看器行为而非文档缺陷,勿据此判断字体未生效。
+// / Comment font = Shoujin. Judge by Chrome/system viewers only; VS Code's pdf.js
+// preview falls back this CID subset to a system Kaiti, so don't trust it here.
 #let _评论字体 = state("评论字体", ("FZZhaoJiShouJinShuS", "方正赵佶瘦金书 简"))
 
 // 当前语言的正文字标点映射(由 地狱之下模板 按 lang 写入);空表则不替换。
