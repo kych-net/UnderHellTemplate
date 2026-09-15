@@ -580,14 +580,14 @@
   )[#text(..header-font-args, size: 1.15em, fill: heading-fill, weight: "regular")[#it]]
  ]
 
- // 五级标题样式:左侧圆点(垂直居中)+ 深红斜体 / Level-5 heading: left dot (vertically centered) + darkred italic
+ // 五级标题样式:左侧圆点(垂直居中)+ 深红(正则体)/ Level-5 heading: left dot (vertically centered) + darkred
  show heading.where(level: 5): it => block[
   #grid(
    columns: (auto, 1fr),
    column-gutter: 0.6em,
    align: (center, left),
    [#box(circle(radius: 1.5pt, fill: heading-fill))],
-   text(..header-font-args, size: 1em, fill: heading-fill, weight: "regular", style: "italic")[#it],
+   text(..header-font-args, size: 1em, fill: heading-fill, weight: "regular")[#it],
   )
  ]
 
@@ -815,7 +815,7 @@
       let 标 = 放
       let 前缀 = if 放 == 6 { "— " } else { "" }
       html.elem("h" + str(标), attrs: (class: "lv-" + str(标),))[
-       #text(..header-font-args, size: (if 标 == 5 { 1em } else if 标 == 6 { 0.95em } else { 0.9em }), fill: heading-fill, weight: "regular", style: (if 标 == 5 { "italic" } else { "normal" }))[#前缀#编号 #it.body]
+       #text(..header-font-args, size: (if 标 == 5 { 1em } else if 标 == 6 { 0.95em } else { 0.9em }), fill: heading-fill, weight: "regular")[#前缀#编号 #it.body]
       ]
     } else {
       html.elem("div", attrs: (style: "margin-left: " + str(4 * (放 - 1)) + "pt",))[#it]

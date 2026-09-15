@@ -83,13 +83,12 @@ h2 {
 }
 h3 { font-size: 1.3em; }
 h4 { font-size: 1.15em; border-left: 4px solid var(--uh-yellow); padding-left: 0.4em; }
-h5 { font-size: 1.05em; font-style: italic; }
+h5 { font-size: 1.05em; }
 h6 { font-size: 0.95em; }
 h7 { font-size: 0.9em; }
 /* 五/六级标题(显式 div[role=heading]) */
 .lv-5 {
   font-size: 1.05em;
-  font-style: italic;
   color: var(--uh-red);
   margin-left: calc(var(--uh-indent) * 3.5);
 }
