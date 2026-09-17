@@ -1334,3 +1334,36 @@ All original material in this work is copyright by the respective authors and pu
   include "/" + 路径
 }
 
+// ------------------------------------------------------------
+// 引用:块引用(左深红侧边条 + 可选出处标注)
+// Blockquote with a left dark-red accent bar and optional citation.
+//  body      - 引文内容 / Quoted content
+//  出处       - 来源标注(可为 content 或 none),显示在框内右下方
+//             Citation shown right-aligned at the bottom (content or none)
+//  breakable - 是否允许跨页,默认开启 / Whether it can break across pages
+// ------------------------------------------------------------
+#let 引用(body, 出处: none, breakable: true) = {
+ if "web" in sys.inputs and sys.inputs.web == "true" {
+  return html.elem("div", attrs: (class: "uh-quote",))[
+   #if 出处 != none {
+    html.elem("div", attrs: (class: "uh-quote-cite",))[— #出处]
+   }
+   #set par(first-line-indent: 0em, spacing: 0.6em)
+   #body
+  ]
+ }
+ block(
+  breakable: breakable,
+  inset: (left: 14pt, top: 5pt, right: 8pt, bottom: 5pt),
+  width: 100%,
+  stroke: (left: 2.5pt + darkred),
+  fill: rgb("#fefff9"),
+ )[
+  #set par(first-line-indent: 0em, spacing: 0.6em)
+  #body
+  #if 出处 != none [
+   #v(0.4em)
+   #align(right)[#text(fill: rgb("#888888"), size: 0.88em)[— #出处]]
+  ]
+ ]
+}
