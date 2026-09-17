@@ -47,11 +47,11 @@ jobs:
             exit 1
           fi
 
-      - name: Clone fork (CrossDark/packages)
+      - name: Clone fork (kych-net/packages)
         env:
           GH_TOKEN: ${{ secrets.TYPST_PACKAGES_TOKEN }}
         run: |
-          git clone --depth 1 https://x-access-token:${GH_TOKEN}@github.com/CrossDark/packages.git /tmp/packages
+          git clone --depth 1 https://x-access-token:${GH_TOKEN}@github.com/kych-net/packages.git /tmp/packages
           cd /tmp/packages
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -94,7 +94,7 @@ jobs:
           # 若已存在同分支的 PR 则跳过创建
           EXISTING=$(gh pr view \
             --repo typst/packages \
-            --head CrossDark:add-underhell-${{ steps.ver.outputs.version }} \
+            --head kych-net:add-underhell-${{ steps.ver.outputs.version }} \
             --json number --jq '.number' 2>/dev/null || true)
           if [[ -n "$EXISTING" ]]; then
             echo "已存在 PR #$EXISTING,跳过创建"
@@ -108,6 +108,6 @@ jobs:
           gh pr create \
             --repo typst/packages \
             --base main \
-            --head CrossDark:add-underhell-${{ steps.ver.outputs.version }} \
+            --head kych-net:add-underhell-${{ steps.ver.outputs.version }} \
             --title "Add underhell@${{ steps.ver.outputs.version }}" \
             --body-file /tmp/pr-body.md
