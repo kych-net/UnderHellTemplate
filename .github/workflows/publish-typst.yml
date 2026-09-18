@@ -84,6 +84,8 @@ jobs:
           cd /tmp/packages
           git add -A
           git commit -m "Add underhell@${{ steps.ver.outputs.version }}" || echo "无变更可提交(可能已存在)"
+          # 显式用带凭据的 token URL push,否则会按 OAuth 归属账号(kych-net)鉴定导致 403
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/kych-net/packages.git"
           git push -f origin add-underhell-${{ steps.ver.outputs.version }}
 
       - name: 创建 PR 到 typst/packages
