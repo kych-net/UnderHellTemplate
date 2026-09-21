@@ -1,4 +1,4 @@
-#import "../lib.typ": *
+#import "@preview/underhell:0.3.1": *
 
 #show: 地狱之下模板.with(
   title: "A Date with Destiny",

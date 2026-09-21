@@ -95,8 +95,6 @@ jobs:
         shell: bash
         run: |
           cd package-registry
-          # 诊断:打印 token 长度/前缀/后缀(不泄露完整值),用于核对 secret 与预期 token 是否一致
-          echo "TOKEN_LEN=${#GH_TOKEN} PREFIX=${GH_TOKEN:0:9} SUFFIX=${GH_TOKEN: -8}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           # 以最新上游 main 为基底,避免 fork 落后导致 PR 冲突

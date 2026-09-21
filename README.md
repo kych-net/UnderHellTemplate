@@ -134,7 +134,7 @@ Note: in running text write `#元素(...)` directly (do not wrap in `[` `]`, or 
 #提示框([#元素[天堂卫星]的能力], [...])
 #表格([#元素[热量循环系统]], [...])
 
-#属性框((name: [#元素[怪动植物]], ...))
+#属性框((name: [#元素[怪动植物]]))
 ```
 
 编译时选择元素系统(缺省为"普通")/ Choose the element system at build time (default `"普通"`):
