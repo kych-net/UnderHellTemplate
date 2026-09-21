@@ -13,6 +13,19 @@ on:
         required: true
         default: "0.3.1"
 
+env:
+  # 注册表所在的托管平台
+  # for Universe this is Github: https://github.com
+  REGISTRY_FORGE: https://github.com
+  # 承载已发布包的仓库(ups食),PR 以其最新 main 为基底
+  # 需要 REGISTRY_TOKEN 可读(typst/packages 公开,读即可)
+  REGISTRY_REPO: typst/packages
+  # 要推送发布版本的目标仓库,必须是你有写权限的 fork
+  # 需要 REGISTRY_TOKEN 可 push(即 secrets.TYPST_PACKAGES_TOKEN)
+  REGISTRY_FORK: kych-net/packages
+  # 包在仓库里的路径前缀(Universe 为 packages/preview)
+  PATH_PREFIX: packages/preview
+
 permissions:
   contents: read
 
@@ -47,26 +60,22 @@ jobs:
             exit 1
           fi
 
-      - name: Clone fork (kych-net/packages)
-        env:
-          GH_TOKEN: ${{ secrets.TYPST_PACKAGES_TOKEN }}
-        run: |
-          git clone --depth 1 https://x-access-token:${GH_TOKEN}@github.com/kych-net/packages.git /tmp/packages
-          cd /tmp/packages
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: 同步 fork 与上游
-        run: |
-          cd /tmp/packages
-          git remote add upstream https://github.com/typst/packages.git
-          git fetch --depth 1 upstream main
-          # 以 upstream/main 为基底,避免 fork 落后导致 PR 冲突
-          git checkout -b add-underhell-${{ steps.ver.outputs.version }} upstream/main
+      # 关键:用 actions/checkout + token 克隆 registry 仓库。checkout 会把 token
+      # 写入该目录的 git 凭据(http.extraheader),后续 push 到同一 host 的 fork 自动带 token,
+      # 无需 URL 内嵌 —— 这正是官方模板规避 403 的方式。
+      - name: Checkout registry fork as base
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ env.REGISTRY_REPO }}
+          token: ${{ secrets.TYPST_PACKAGES_TOKEN }}
+          path: package-registry
+          sparse-checkout: ${{ env.PATH_PREFIX }}/underhell/${{ steps.ver.outputs.version }}
 
       - name: 放置包文件
+        shell: bash
         run: |
-          DEST="/tmp/packages/packages/preview/underhell/${{ steps.ver.outputs.version }}"
+          DEST="${PATH_PREFIX}/underhell/${{ steps.ver.outputs.version }}"
+          # 目录可能因 sparse-checkout 未检出,预先创建
           mkdir -p "$DEST"
           # 复制包根文件:typst.toml / lib.typ / README.md / LICENSE
           cp typst.toml lib.typ README.md LICENSE "$DEST/"
@@ -78,27 +87,29 @@ jobs:
           ls -la "$DEST"
 
       - name: 提交并推送到 fork
-        env:
-          GH_TOKEN: ${{ secrets.TYPST_PACKAGES_TOKEN }}
+        shell: bash
         run: |
-          cd /tmp/packages
-          git add -A
+          cd package-registry
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          # 以最新上游 main 为基底,避免 fork 落后导致 PR 冲突
+          BRANCH="add-underhell-${{ steps.ver.outputs.version }}"
+          git checkout -b "$BRANCH"
+          git add .
           git commit -m "Add underhell@${{ steps.ver.outputs.version }}" || echo "无变更可提交(可能已存在)"
-          # 诊断输出:确认 token 是否真正带进 URL(只打印长度与前/后缀)
-          echo "GH_TOKEN_LEN=${#GH_TOKEN} PREFIX=${GH_TOKEN:0:6} SUFFIX=${GH_TOKEN: -6}"
-          # 命令内直接内嵌带 token 的 URL push,不依赖 remote set-url / credential helper
-          # 用 用户名:token 格式(不用 x-access-token `,那是 GitHub App 安装令牌专用,对 PAT 会导致身份解析异常)
-          git push -f "https://kych-net:${GH_TOKEN}@github.com/kych-net/packages.git" add-underhell-${{ steps.ver.outputs.version }}
+          # checkout 已写入凭据,直接 push 到 fork,不内嵌 token
+          git remote add fork "${REGISTRY_FORGE}/${REGISTRY_FORK}"
+          git push --force --set-upstream fork "$BRANCH"
 
       - name: 创建 PR 到 typst/packages
         env:
           GH_TOKEN: ${{ secrets.TYPST_PACKAGES_TOKEN }}
+        shell: bash
         run: |
-          cd /tmp/packages
           # 若已存在同分支的 PR 则跳过创建
           EXISTING=$(gh pr view \
             --repo typst/packages \
-            --head kych-net:add-underhell-${{ steps.ver.outputs.version }} \
+            --head ${REGISTRY_FORK%/*}:add-underhell-${{ steps.ver.outputs.version }} \
             --json number --jq '.number' 2>/dev/null || true)
           if [[ -n "$EXISTING" ]]; then
             echo "已存在 PR #$EXISTING,跳过创建"
@@ -112,6 +123,6 @@ jobs:
           gh pr create \
             --repo typst/packages \
             --base main \
-            --head kych-net:add-underhell-${{ steps.ver.outputs.version }} \
+            --head ${REGISTRY_FORK%/*}:add-underhell-${{ steps.ver.outputs.version }} \
             --title "Add underhell@${{ steps.ver.outputs.version }}" \
             --body-file /tmp/pr-body.md
