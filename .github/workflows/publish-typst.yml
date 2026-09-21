@@ -63,13 +63,15 @@ jobs:
       # 关键:用 actions/checkout + token 克隆 registry 仓库。checkout 会把 token
       # 写入该目录的 git 凭据(http.extraheader),后续 push 到同一 host 的 fork 自动带 token,
       # 无需 URL 内嵌 —— 这正是官方模板规避 403 的方式。
-      - name: Checkout registry fork as base
+      - name: Checkout package registry (typst/packages)
+        # 完整 checkout 上游 registry,保证目标目录可被 git add 提交。
+        # 不使用 sparse-checkout:新包的 <name>/<version> 目录在 registry 中尚不存在,
+        # 稀疏(cone)模式会忽略新文件导致"nothing to commit"。
         uses: actions/checkout@v5
         with:
           repository: ${{ env.REGISTRY_REPO }}
           token: ${{ secrets.TYPST_PACKAGES_TOKEN }}
           path: package-registry
-          sparse-checkout: ${{ env.PATH_PREFIX }}/underhell/${{ steps.ver.outputs.version }}
 
       - name: 放置包文件
         shell: bash
@@ -87,6 +89,9 @@ jobs:
           ls -la "$DEST"
 
       - name: 提交并推送到 fork
+        env:
+          # 用户名为 fork 所有者(kych-net)+ token 作为密码,消除 fine-grained PAT 身份解析歧义
+          GH_TOKEN: ${{ secrets.TYPST_PACKAGES_TOKEN }}
         shell: bash
         run: |
           cd package-registry
@@ -97,9 +102,11 @@ jobs:
           git checkout -b "$BRANCH"
           git add .
           git commit -m "Add underhell@${{ steps.ver.outputs.version }}" || echo "无变更可提交(可能已存在)"
-          # checkout 已写入凭据,直接 push 到 fork,不内嵌 token
+          # 显式 basic 认证:base64(用户名:token),覆盖 checkout 对该 host 的凭据
           git remote add fork "${REGISTRY_FORGE}/${REGISTRY_FORK}"
-          git push --force --set-upstream fork "$BRANCH"
+          AUTH=$(printf '%s:%s' "${REGISTRY_FORK%/*}" "$GH_TOKEN" | base64)
+          git -c http.https://github.com/.extraheader="AUTHORIZATION: basic ${AUTH}" \
+            push --force --set-upstream fork "$BRANCH"
 
       - name: 创建 PR 到 typst/packages
         env:
