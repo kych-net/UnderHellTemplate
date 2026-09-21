@@ -102,12 +102,13 @@ jobs:
           git checkout -b "$BRANCH"
           git add .
           git commit -m "Add underhell@${{ steps.ver.outputs.version }}" || echo "无变更可提交(可能已存在)"
-          # 显式 basic 认证:base64(用户名:token),覆盖 checkout 对该 host 的凭据
+          # 显式 basic 认证:base64(用户名:token),消除 fine-grained PAT 身份解析歧义。
           git remote add fork "${REGISTRY_FORGE}/${REGISTRY_FORK}"
+          # 必须先清掉 actions/checkout 注入的同键 extraheader,否则会重复 Authorization 头导致 400。
+          git config --unset-all http.https://github.com/.extraheader || true
           AUTH=$(printf '%s:%s' "${REGISTRY_FORK%/*}" "$GH_TOKEN" | base64 -w0)
-          # 用 http.extraheader 单独注入 basic 认证;GNU base64 默认会换行,须 -w0 保证 header 无换行
-          git -c http.https://github.com/.extraheader="AUTHORIZATION: basic ${AUTH}" \
-            push --force --set-upstream fork "$BRANCH"
+          git config http.https://github.com/.extraheader "AUTHORIZATION: basic ${AUTH}"
+          git push --force --set-upstream fork "$BRANCH"
 
       - name: 创建 PR 到 typst/packages
         env:
