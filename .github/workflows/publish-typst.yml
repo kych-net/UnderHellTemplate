@@ -76,8 +76,8 @@ jobs:
       - name: 放置包文件
         shell: bash
         run: |
-          DEST="${PATH_PREFIX}/underhell/${{ steps.ver.outputs.version }}"
-          # 目录可能因 sparse-checkout 未检出,预先创建
+          DEST="package-registry/${PATH_PREFIX}/underhell/${{ steps.ver.outputs.version }}"
+          # 目录若尚未检出则预先创建(相对 package-registry 目录)
           mkdir -p "$DEST"
           # 复制包根文件:typst.toml / lib.typ / README.md / LICENSE
           cp typst.toml lib.typ README.md LICENSE "$DEST/"
@@ -104,7 +104,8 @@ jobs:
           git commit -m "Add underhell@${{ steps.ver.outputs.version }}" || echo "无变更可提交(可能已存在)"
           # 显式 basic 认证:base64(用户名:token),覆盖 checkout 对该 host 的凭据
           git remote add fork "${REGISTRY_FORGE}/${REGISTRY_FORK}"
-          AUTH=$(printf '%s:%s' "${REGISTRY_FORK%/*}" "$GH_TOKEN" | base64)
+          AUTH=$(printf '%s:%s' "${REGISTRY_FORK%/*}" "$GH_TOKEN" | base64 -w0)
+          # 用 http.extraheader 单独注入 basic 认证;GNU base64 默认会换行,须 -w0 保证 header 无换行
           git -c http.https://github.com/.extraheader="AUTHORIZATION: basic ${AUTH}" \
             push --force --set-upstream fork "$BRANCH"
 
