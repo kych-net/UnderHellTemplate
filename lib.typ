@@ -164,6 +164,53 @@
 // show text at render time.
 #let _语言标点 = state("语言标点", (:))
 
+// 标点替换:把 text 里的标点按语言表替换,数字两侧与编号片段不受影响。
+// 表 省略时读 _语言标点 状态;也可 #show text: 标点替换.with(表: 表) 显式传入。
+// / Punctuation replacement for text; the map defaults to the _语言标点 state.
+#let 标点替换(it, 表: none) = {
+  // 元素类型判断必须用 it.func():Typst 中 text 是元素函数,
+  // type(it) 只返回 content,`type(it) != text` 恒真,会导致整个替换被跳过。
+  if it.func() != text { it } else {
+    context {
+      let t = if 表 == none { _语言标点.get() } else { 表 }
+      if t.len() == 0 { it } else {
+        let 原 = it.text
+        // 标题编号片段(如 "A."、"D.7."):纯 ASCII 编号文本不参与标点替换,
+        // 否则编号结尾的 "." 会被替换成多余的中文句号("A。")。
+        let 是编号片段 = {
+          let ok = 原.len() > 0
+          let has-dot = false
+          for c in 原.codepoints() {
+            if not ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.".contains(c)) { ok = false }
+            if c == "." { has-dot = true }
+          }
+          ok and has-dot and 原.slice(原.len() - 1) == "."
+        }
+        if 是编号片段 { it } else {
+          let 临时 = 原
+          // 先处理多字符源(如 "..." -> "……")
+          for (src, tgt) in t {
+            if src.len() > 1 { 临时 = 临时.replace(src, tgt) }
+          }
+          // 单字符源:逐字符替换(按编码点),相邻为数字时保留(保护比例/小数)
+          let 好 = ""
+          let 字符集 = 临时.codepoints()
+          for i in range(字符集.len()) {
+            let c = 字符集.at(i)
+            let tgt = t.at(c, default: none)
+            if tgt == none or tgt.len() == 0 { 好 += c } else {
+              let prev = if i > 0 { 字符集.at(i - 1) } else { "" }
+              let next = if i + 1 < 字符集.len() { 字符集.at(i + 1) } else { "" }
+              if (prev != "" and "0123456789".contains(prev)) or (next != "" and "0123456789".contains(next)) { 好 += c } else { 好 += tgt }
+            }
+          }
+          if 好 == 原 { it } else { [#好] }
+        }
+      }
+    }
+  }
+}
+
 #let 设定元素(id, font: none, level: none) = {
  context {
   let cur = 元素系统-state.get()
