@@ -88,6 +88,8 @@ description: "地狱之下(UnderHell)的 Typst 模板开发规范:中文化函�
   字面 `#元素[]` 替换与 JS 注入(插件回退),不再负责样式。
 - 阅读器面板纯 CSS:`:target` 开合面板,隐藏 radio + `body:has(#uh-fs-N:checked)` 切 `--uh-zoom`(字号)
   与 `--uh-body-font`(字体)。档位 id 为 `uh-fs-0..` / `uh-ft-0..`,由 `阅读器:` 参数长度决定。
+- 只在网页输出的内容用 `#if is_web() [ … ]` 包裹(PDF 编译时整段跳过);`is_web()` / `is-web-target()`
+  定义在 `lib.typ` 顶部,读 `--input web=true`。文档首页的站内导航段即用此法避开 PDF。
 - **坑**:文档顶层若有 `#show text: 标点替换`(如 `文档/内容/index.typ`),该规则会连 `<style>` 里的 CSS 一起
   替换,把 `, ; :` 变成中文标点导致样式表失效——而 `<style>` 内的 text 元素只保留 `text` 字段,
   无法用 lang/fill 等标记区分。故 `_网页样式()` 在输出前加 `/*uh-raw*/` 前缀(`_原样标记`),

@@ -308,6 +308,11 @@ Note: `set heading(offset:)` only takes non-negative values and cannot shallow-o
 用 `--features html --input web=true --format html` 导出单栏 HTML,样式由包内的 `web.css` 提供(lib.typ 在 web 模式下直接读取它,并把字体、主题色、阅读器档位等按配置填进样式表的锚点注释)。网页自带右上角导航、右下角浮动目录与可调字号字体的"阅读器"面板,全部由 CSS 实现,不需要额外脚本或后处理。
 Export single-column HTML with `--features html --input web=true --format html`. Styling comes from the bundled `web.css`, which lib.typ reads in web mode and fills its anchor comments with your font/theme/reader settings. The page ships a top-right nav, a floating table of contents, and a reader panel for font size and family — all pure CSS, no scripts or post-processing needed.
 
+只在网页出现的内容用 `#if is_web() [ … ]` 包住,PDF 编译时整段跳过(如站内导航链接)。
+`is_web()` 与 `is-web-target()` 由模板导出,依据编译参数 `--input web=true` 判定。
+Wrap web-only content in `#if is_web() [ … ]` and it is skipped entirely in PDF builds (e.g. in-site nav links).
+`is_web()` / `is-web-target()` are exported by the template and read `--input web=true`.
+
 字体与 `@font-face` 由语言文件的 `[web]` 段配置(不配则回退到 `[fonts]` 的系统字体):
 
 ```toml
