@@ -9,9 +9,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "要发布的版本号(如 0.3.1,不带 v 前缀)"
+        description: "要发布的版本号(如 0.4.0,不带 v 前缀)"
         required: true
-        default: "0.3.1"
+        default: "0.4.0"
 
 env:
   # 注册表所在的托管平台
@@ -79,8 +79,9 @@ jobs:
           DEST="package-registry/${PATH_PREFIX}/underhell/${{ steps.ver.outputs.version }}"
           # 目录若尚未检出则预先创建(相对 package-registry 目录)
           mkdir -p "$DEST"
-          # 复制包根文件:typst.toml / lib.typ / README.md / LICENSE
-          cp typst.toml lib.typ README.md LICENSE "$DEST/"
+          # 复制包根文件:typst.toml / lib.typ / web.css / README.md / LICENSE
+          # (web.css 必须进包:lib.typ 在 web 模式直接读取它生成网页样式)
+          cp typst.toml lib.typ web.css README.md LICENSE "$DEST/"
           # 复制资源目录:img(背景图等)、languages(语言配置)、example(示例)
           cp -r img languages example "$DEST/"
           # 删除可能的 .gitignore / 构建产物,包内不需要

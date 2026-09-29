@@ -9,8 +9,8 @@
 这是一个用于架空世界内容创作的 [Typst](https://typst.app) 模板,适用于冒险模组、世界设定文档、角色卡片等场景。
 A [Typst](https://typst.app) template for worldbuilding content: adventure modules, setting documents, character sheets, and more.
 
-模板名为 `underhell`,已发布至 Typst Universe,可通过 `#import "@preview/underhell:0.2.0": *` 导入。本仓库内_地狱之下_项目自身则通过相对路径引用:`#import "../模板/lib.typ": *`。
-The template is named `underhell` and published to Typst Universe, imported via `#import "@preview/underhell:0.2.0": *`. Inside this repo the _UnderHell_ project itself references it by relative path: `#import "../模板/lib.typ": *`.
+模板名为 `underhell`,已发布至 Typst Universe,可通过 `#import "@preview/underhell:0.4.0": *` 导入。本仓库内_地狱之下_项目自身则通过相对路径引用:`#import "../模板/lib.typ": *`。
+The template is named `underhell` and published to Typst Universe, imported via `#import "@preview/underhell:0.4.0": *`. Inside this repo the _UnderHell_ project itself references it by relative path: `#import "../模板/lib.typ": *`.
 
 **注意**:本包已更新以兼容最新版本的 Typst (0.13),可提交至 Typst Universe.
 **Note**: This package is updated to work with the latest Typst (0.13) and is ready for Typst Universe.
@@ -47,6 +47,31 @@ The `地狱之下模板` template initializes the document for you. Parameters y
 - `元素系统数据`:元素系统数据文件的 `csv()` 读取结果(详见下文"元素系统")。
   The `csv()` result of the element-system data file (see "元素系统" below).
 
+以下参数用于站点定制(其中 `品牌名`、`主题` 的 `标题色`/`强调色` 同时影响 PDF),默认值即_地狱之下_项目自身的值,第三方使用时覆盖即可。
+These options customize the site (with `品牌名` and the theme's `标题色`/`强调色` also affecting PDF). Their defaults are the _UnderHell_ project's own values; overwrite them for your own site.
+
+- `品牌名`:`品牌` 函数打印的名字。默认 `"地狱之下"`。
+  Name printed by the `品牌` helper. Default `"地狱之下"`.
+- `页脚链接`:网页右上角导航链接数组,每项 `(标签: "PDF", 网址: "...", 提示: "...")`;`提示` 省略则用标签。
+  Nav links for the web page, each `(标签:, 网址:, 提示:)`; `提示` falls back to `标签`.
+- `备案号` / `备案链接`:网页底部备案号与链接;`备案号` 设为 `""` 则不渲染页脚。
+  ICP filing number and link at the page bottom; set `备案号` to `""` to omit the footer.
+- `主题`:调色字典,可含 `标题色`、`强调色`(PDF 与网页共用)与 `纸色`、`墨色`(仅网页)。值为 Typst 颜色或 CSS 颜色字符串。
+  Theme dict with `标题色`, `强调色` (PDF + web) and `纸色`, `墨色` (web only). Values are Typst colors or CSS color strings.
+- `阅读器`:网页阅读器面板配置,见下文"网页输出"。
+  Web reader-panel config, see "网页输出" below.
+
+```typst
+#show: 地狱之下模板.with(
+  title: "我的设定集",
+  品牌名: "某大陆",
+  页脚链接: ((标签: "主页", 网址: "https://example.com", 提示: "回到主页"),),
+  备案号: "",
+  主题: (标题色: rgb("#2b4a6f"), 强调色: rgb("#c8a24a"), 纸色: "#f6f4ef"),
+  阅读器: (默认字号: 1, 字号: (("小", 0.9), ("中", 1), ("大", 1.15))),
+)
+```
+
 之后,几乎所有需求都可用基础 Typst 标记完成。模板还提供以下便捷函数:
 Almost everything else is plain Typst. The template also provides these helpers:
 
@@ -59,8 +84,8 @@ In normal mode returns dark-red text (like `#元素(id)`, but no link). **Passin
 `评论(body)`:以标题字体、**灰色**显示注释(默认无删除线);编译时传 `--input 隐藏评论=true` 可整体隐藏。
 Shows a comment in the heading font, **in gray** (no strikethrough by default). Pass `--input 隐藏评论=true` to hide all.
 
-`品牌`:以小型大写字母打印品牌名 "地狱之下"。
-Prints the brand name "地狱之下" in small caps.
+`品牌`:以小型大写字母打印品牌名(取自 `品牌名` 参数)。
+Prints the brand name (from the `品牌名` option) in small caps.
 
 ## 标题样式 · Heading styles
 
@@ -277,6 +302,36 @@ The `导入` function includes another `.typ` file via `#include` and deepens al
 
 注意:`set heading(offset:)` 只取非负值,无法把标题变浅;需调整层级时改被导入文件源码即可。
 Note: `set heading(offset:)` only takes non-negative values and cannot shallow-out headings; edit the source file if you need to change levels.
+
+## 网页输出 · Web output
+
+用 `--features html --input web=true --format html` 导出单栏 HTML,样式由包内的 `web.css` 提供(lib.typ 在 web 模式下直接读取它,并把字体、主题色、阅读器档位等按配置填进样式表的锚点注释)。网页自带右上角导航、右下角浮动目录与可调字号字体的"阅读器"面板,全部由 CSS 实现,不需要额外脚本或后处理。
+Export single-column HTML with `--features html --input web=true --format html`. Styling comes from the bundled `web.css`, which lib.typ reads in web mode and fills its anchor comments with your font/theme/reader settings. The page ships a top-right nav, a floating table of contents, and a reader panel for font size and family — all pure CSS, no scripts or post-processing needed.
+
+字体与 `@font-face` 由语言文件的 `[web]` 段配置(不配则回退到 `[fonts]` 的系统字体):
+
+```toml
+[web]
+body-family = "uh-lxgw-mono"      # 自托管族名,插到 [fonts].body 列表首位
+header-family = "duan-kaixiao"
+comment-family = "zhaoji-shoujin"
+bold-family = "uh-zhenkai"
+
+[[web.fonts]]                      # 逐条生成 @font-face;file 相对 HTML 输出目录
+family = "uh-lxgw-mono"
+file = "webfonts/lxgw-wenkai-mono.woff2"
+```
+
+`阅读器` 参数控制面板档位(默认 小/中/大/特大 与 楷体/宋体/黑体):
+
+```typst
+阅读器: (
+  默认字号: 1,                                      // 默认选中第几档(0 起)
+  默认字体: 0,
+  字号: (("小", 0.88), ("中", 1), ("大", 1.15)),      // (档名, 字号倍率)
+  字体: (("楷体", none), ("宋体", "\"Songti SC\", serif")),  // (档名, CSS 字体栈;none=沿用正文字体)
+)
+```
 
 ## AI 技能 · AI skill
 

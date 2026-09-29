@@ -12,7 +12,7 @@ description: "地狱之下(UnderHell)的 Typst 模板开发规范:中文化函�
 
 - `模板/` 是独立 git 子模块 UnderHellTemplate,已发布至 Typst Universe(`@preview/underhell`)。
 - 改动后需在子模块内 commit/push,再更新根仓库子模块指针(默认用根仓库 `推送.sh`)。
-- 包分发文件:根目录下的 `typst.toml`、`lib.typ`、`README.md`、`LICENSE`、`img/`、`languages/`、`example/`。包外的 `.github/`、`web.css`、`webfonts/` 仅本项目网页构建用,不随包发布(见 typst.toml exclude)。
+- 包分发文件:根目录下的 `typst.toml`、`lib.typ`、`web.css`、`README.md`、`LICENSE`、`img/`、`languages/`、`example/`。包外的 `.github/`、`.gitcode/`、`.skills/`、`webfonts/` 不随包发布(见 typst.toml exclude)。`web.css` **必须进包**:lib.typ 在 web 模式直接 `read("web.css")`。
 
 ## 中文化函数(模板/lib.typ)
 
@@ -64,10 +64,36 @@ description: "地狱之下(UnderHell)的 Typst 模板开发规范:中文化函�
 - `body`:霞鹜文楷等宽(正文)
 - `italic`:等距更纱黑体 SC(斜体)
 
+可选的 `[web]` 段(仅网页输出用):
+
+- `body-family` / `header-family` / `comment-family` / `bold-family`:自托管族名,插到对应 `[fonts]` 列表首位(生成 `--uh-*-font` 变量)。
+- `[[web.fonts]]` 的 `family` / `file`:逐条生成 `@font-face`(`file` 相对 HTML 输出目录,如 `webfonts/x.woff2`)。
+- 不配 `[web]` 时网页按 `[fonts]` 的系统字体回退,不生成 `@font-face`。
+
+## 站点定制参数(默认值=本项目现状,第三方可覆盖)
+
+`品牌名`(品牌名,PDF+网页)、`页脚链接`(`((标签:, 网址:, 提示:), ..)`,网页右上角导航)、
+`备案号` / `备案链接`(网页页脚,备案号设为 `""` 则不渲染)、
+`主题`(`标题色`/`强调色` 影响 PDF 与网页,`纸色`/`墨色` 仅网页;值为 Typst 颜色或 CSS 色字符串)、
+`阅读器`(`默认字号`/`默认字体` + `字号`/`字体` 档位列表,驱动网页阅读器面板)。
+
+主题色通过 `_标题色` / `_强调色` 状态注入:模块级函数(元素/属性表/属性框/人物框/附录/引用/目录)需
+`= context {` 包裹后用 `_标题色.get()` 读取,标题 show 规则用局部变量 `heading-fill`。
+
 ## 网页输出(web.css / webfonts)
 
-- `make web` 产单栏 HTML,`web_post.py` 注入样式与脚本,字体全库 woff2 拷入 `dist/webfonts/`。
-- 发布时(.github/workflows/build-web.yml)按 HTML 实际用字子集化字体,只保留文中出现的字。
+- `make web` 产单栏 HTML。样式**由模板自包含注入**:lib.typ 的 `_网页样式()` 读 `web.css`,把
+  `/*UH_WEB_FONTFACE*/`、`/*UH_WEB_FONTVARS*/`、`/*UH_WEB_THEME*/`、`/*UH_WEB_READER*/` 四个锚点
+  替换为按 TOML 与参数生成的内容,再 `html.elem("style", ..)` 输出。`web_post.py` 仅做标点/路径修复、
+  字面 `#元素[]` 替换与 JS 注入(插件回退),不再负责样式。
+- 阅读器面板纯 CSS:`:target` 开合面板,隐藏 radio + `body:has(#uh-fs-N:checked)` 切 `--uh-zoom`(字号)
+  与 `--uh-body-font`(字体)。档位 id 为 `uh-fs-0..` / `uh-ft-0..`,由 `阅读器:` 参数长度决定。
+- **坑**:文档顶层若有 `#show text: 标点替换`(地狱之下.typ 有),该规则会连 `<style>` 里的 CSS 一起
+  替换,把 `, ; :` 变成中文标点导致样式表失效——而 `<style>` 内的 text 元素只保留 `text` 字段,
+  无法用 lang/fill 等标记区分。故 `_网页样式()` 在输出前加 `/*uh-raw*/` 前缀(`_原样标记`),
+  `标点替换` 遇到该前缀原样放过(标记本身是 CSS 注释,留在输出中无害)。
+- `make web` 会把 `webfonts/*.woff2` 拷到 `dist/webfonts/`;发布时(.github/workflows/build-web.yml)
+  按 HTML 实际用字子集化字体,只保留文中出现的字。
 - 字体缺字(如 ▾ 💬)由浏览器回退系统字体,非模板缺陷。
 
 ## Typst Universe 发布
@@ -75,7 +101,7 @@ description: "地狱之下(UnderHell)的 Typst 模板开发规范:中文化函�
 - 版本号只改 `typst.toml` 的 `version`;发布用 `.github/workflows/publish-typst.yml`,
   推送 `v*` 标签或手动触发(输入不带 v 前缀的版本号)。
 - 流程:校验 typst.toml 版本 → checkout `typst/packages` → 放置包文件
-  (typst.toml/lib.typ/README.md/LICENSE/img/languages/example)→ fork push → `gh pr create`。
+  (typst.toml/lib.typ/web.css/README.md/LICENSE/img/languages/example)→ fork push → `gh pr create`。
 - fork 需配置 `TYPST_PACKAGES_TOKEN`(fine-grained:Contents/Workflow/Pull requests 三项写权限)。
 - 包名 `underhell` 下每个版本目录 `packages/preview/underhell/<version>/`,新版本需新建目录,
   勿覆盖旧版本。

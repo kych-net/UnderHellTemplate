@@ -3,10 +3,22 @@
 // 提供架空世界风格的文档排版组件 / Fictional-world styled document components
 // ============================================================
 
-// 主题色定义 / Theme color definitions
+// 主题色默认值(可经 地狱之下模板(主题:) 覆盖)
+// / Default theme colors, overridable via 地狱之下模板(主题:)
 #let darkred = rgb("#540808")   // 深红色:用于标题、强调线条 / Dark red: for headings, accent lines
 #let darkyellow = rgb("#fcba03") // 暗黄色:用于二级标题下划线 / Dark yellow: for level-2 heading underline
-#let 品牌 = smallcaps("地狱之下") // 品牌文本(小型大写)/ Brand text (smallcaps)
+
+// 标题色/强调色状态:模板初始化时按 主题: 写入,供模块级函数(元素等)读取。
+// / Heading/accent color states, written from 主题: and read by top-level helpers.
+#let _标题色 = state("标题色", darkred)
+#let _强调色 = state("强调色", darkyellow)
+// 品牌名状态:模板初始化时按 品牌名: 写入 / Brand-name state, written from 品牌名:
+#let _品牌名 = state("品牌名", "地狱之下")
+// 品牌文本(小型大写)/ Brand text (smallcaps)
+#let 品牌 = context smallcaps(_品牌名.get())
+// 颜色转 CSS 值:传字符串原样使用,rgb 等转成 CSS 可解析的 rgb(...)
+// / Color to a CSS value: strings pass through, colors become rgb(...)
+#let _css色(c) = if type(c) == str { c } else { str(c) }
 
 // 页脚内容生成器 / Footer content generator
 // 是否为网页编译(--input web=true)/ Whether compiling for web output
@@ -60,9 +72,28 @@
   }
 }
 
-// 网页模式样式表:仿标准 PDF 视觉(由 web 模式注入 <style>)
-// / Web stylesheet: mirrors the standard PDF look (injected by web mode).
-#let read_web_css() = read("web.css")
+// 原样文本标记:以此开头的文本不被"标点替换"改写。网页样式表必须用它——
+// 文档顶层的 `#show text: 标点替换` 会连 <style> 里的 CSS 一起替换,
+// 把 , ; : 变成中文标点,样式表随即失效。标记本身是 CSS 注释,留在输出中无害。
+// / Raw-text marker: text starting with it bypasses the punctuation show rule.
+// Needed for the web stylesheet, whose ASCII punctuation must survive; the
+// marker is a CSS comment, harmless in the output.
+#let _原样标记 = "/*uh-raw*/"
+
+// 网页模式样式表:读取 web.css,并把其中的锚点注释替换为按语言 TOML 与模板
+// 参数生成的内容(字体声明、字体变量、主题变量、阅读器档位规则)。模板因此自包含,
+// 不依赖 web_post.py 之类的后处理脚本。
+// / Web stylesheet: read web.css and fill its anchors with content generated
+// from the language TOML and template parameters, so the package is
+// self-contained (no external post-processing required).
+#let _网页样式(字体声明: "", 字体变量: "", 主题变量: "", 阅读器: "") = {
+ let css = read("web.css")
+ css = css.replace("/*UH_WEB_FONTFACE*/", 字体声明)
+ css = css.replace("/*UH_WEB_FONTVARS*/", 字体变量)
+ css = css.replace("/*UH_WEB_THEME*/", 主题变量)
+ css = css.replace("/*UH_WEB_READER*/", 阅读器)
+ _原样标记 + css
+}
 
 
 // 第 1 页之后显示页脚图片与页码 / Show footer image and page number after page 1
@@ -186,7 +217,7 @@
           }
           ok and has-dot and 原.slice(原.len() - 1) == "."
         }
-        if 是编号片段 { it } else {
+        if 是编号片段 or 原.starts-with(_原样标记) { it } else {
           let 临时 = 原
           // 先处理多字符源(如 "..." -> "……")
           for (src, tgt) in t {
@@ -252,11 +283,11 @@
     html.elem("span", attrs: (class: "uh-element",))[#term]
    } else if f != none {
     box[
-     #text(fill: darkred, font: f)[#term]
+     #text(fill: _标题色.get(), font: f)[#term]
     ]
    } else {
     box[
-     #text(fill: darkred)[#term]
+     #text(fill: _标题色.get())[#term]
     ]
    }
   }
@@ -292,12 +323,12 @@
   } else if 已定义 {
    if f != none {
     link(label(id-str))[
-     #set text(fill: darkred, font: f)
+     #set text(fill: _标题色.get(), font: f)
      #term
     ]
    } else {
     link(label(id-str))[
-     #set text(fill: darkred)
+     #set text(fill: _标题色.get())
      #term
     ]
    }
@@ -313,13 +344,13 @@
    if f != none {
     box[
      #label(id-str)
-     #set text(fill: darkred, font: f)
+     #set text(fill: _标题色.get(), font: f)
      #term
     ]
    } else {
     box[
      #label(id-str)
-     #set text(fill: darkred)
+     #set text(fill: _标题色.get())
      #term
     ]
    }
@@ -458,7 +489,7 @@
     let id = r.at(0)
     let id-str = if type(id) == content { id.text } else { id }
     if query(label(id-str)).len() > 0 {
-     rows.push(link(label(id-str))[#text(fill: darkred)[#id]])
+     rows.push(link(label(id-str))[#text(fill: _标题色.get())[#id]])
     } else {
      rows.push(id)
     }
@@ -538,7 +569,22 @@
        web: "web" in sys.inputs and sys.inputs.web == "true",
        元素系统: if "元素系统" in sys.inputs and sys.inputs.元素系统 != "" { sys.inputs.元素系统 } else { "普通" },
        元素系统数据: none,
+       品牌名: "地狱之下",
+       页脚链接: ((标签: "PDF", 网址: "https://github.com/kych-net/UnderHell/releases/latest", 提示: "下载 PDF(GitHub 最新发行版)"),
+                 (标签: "GitHub", 网址: "https://github.com/kych-net/UnderHell", 提示: "GitHub 仓库"),
+                 (标签: "GitCode", 网址: "https://gitcode.com/CrossDark/UnderHell", 提示: "GitCode 仓库")),
+       备案号: "京ICP备2026033372号-1",
+       备案链接: "https://beian.miit.gov.cn/",
+       主题: (:),
+       阅读器: (:),
  body) = {
+ // 主题色与品牌名写入状态,供模块级函数(元素/目录/属性框等)与网页样式读取。
+ // / Write theme colors and brand name into state for top-level helpers and web CSS.
+ let 标题色 = 主题.at("标题色", default: darkred)
+ let 强调色 = 主题.at("强调色", default: darkyellow)
+ _标题色.update(标题色)
+ _强调色.update(强调色)
+ _品牌名.update(品牌名)
  // 设置文档元数据 / Set document metadata
  set document(author: author, title: title)
  // 段落间距(无首行缩进)/ Paragraph spacing (no first-line indent)
@@ -589,14 +635,14 @@
   元素系统数据-state.update(元素系统数据)
  }
 
- // 标题始终使用深红(打印/普通/小屏均保持红色) / Headings always darkred
- let heading-fill = darkred
+ // 标题使用主题标题色(打印/普通/小屏均保持) / Headings use the theme heading color
+ let heading-fill = 标题色
 
  // 一级标题样式:小型大写、深红(打印模式也为深红)/ Level-1 heading: smallcaps, always darkred
  show heading.where(level: 1): it => block(text(
   ..header-font-args,
   size: 1.5em,
-  fill: darkred,
+  fill: heading-fill,
   weight: "regular",
   // style: "italic",
   smallcaps(it),
@@ -613,7 +659,7 @@
   weight: "regular",
 
  )[
-  #box(width: 100%, inset: (bottom: 4pt), stroke: (bottom: if print { 0pt } else { 1pt + darkyellow }))[#smallcaps(it)]
+  #box(width: 100%, inset: (bottom: 4pt), stroke: (bottom: if print { 0pt } else { 1pt + 强调色 }))[#smallcaps(it)]
  ])
 
  // 三级标题样式:深红色、小一号、无下划线 / Level-3 heading: darkred, slightly smaller
@@ -628,7 +674,7 @@
  show heading.where(level: 4): it => block[
   #box(
    inset: (left: 8pt),
-   stroke: (left: if print { 0pt } else { 3pt + darkyellow }),
+   stroke: (left: if print { 0pt } else { 3pt + 强调色 }),
    width: 100%,
   )[#text(..header-font-args, size: 1.15em, fill: heading-fill, weight: "regular")[#it]]
  ]
@@ -740,9 +786,10 @@
   html.elem("header", attrs: (class: "uh-cover",))[
    // 右上角固定导航:PDF 下载(GitHub 最新 release)+ 仓库链接
    #html.elem("nav", attrs: (class: "uh-site",))[
-    #html.elem("a", attrs: (class: "uh-site-link", href: "https://github.com/kych-net/UnderHell/releases/latest", title: "下载 PDF(GitHub 最新发行版)", target: "_blank",))[PDF]
-    #html.elem("a", attrs: (class: "uh-site-link", href: "https://github.com/kych-net/UnderHell", title: "GitHub 仓库", target: "_blank",))[GitHub]
-    #html.elem("a", attrs: (class: "uh-site-link", href: "https://gitcode.com/CrossDark/UnderHell", title: "GitCode 仓库", target: "_blank",))[GitCode]
+    // 站点链接由参数 页脚链接: 生成 / Site links come from the 页脚链接: option
+    #for 链 in 页脚链接 [
+     #html.elem("a", attrs: (class: "uh-site-link", href: 链.at("网址"), title: 链.at("提示", default: 链.at("标签")), target: "_blank",))[#链.at("标签")]
+    ]
     // 阅读器:点击展开设置面板(调字号/字体),开合靠 :target,无脚本
     #html.elem("a", attrs: (class: "uh-site-link uh-reader-toggle", href: "#uh-reader", title: "阅读器:调整字号与字体",))[阅读器]
    ]
@@ -844,7 +891,53 @@
  // 并按标题层级递归缩进内容(N 级标题及其下内容缩进 N-1 级)。
  // Web mode: inject PDF-like stylesheet and nest content by heading level.
  if web {
-  html.elem("style", "/*UH_WEB_CSS*/")
+  // 网页样式与组件:读取 web.css 并填充锚点,填入的内容由语言 TOML 的 [web] 段、
+  // 主题参数、阅读器参数生成。模板因此自包含,不依赖外部后处理脚本。
+  // / Web styles & widgets: read web.css and fill its anchors with content
+  // generated from the language TOML [web] section and the 主题:/阅读器: options.
+  let web-cfg = if "web" in lang-toml { lang-toml.web } else { (:) }
+  let 自托管 = web-cfg.at("fonts", default: ())
+  // @font-face 声明(自托管 woff2)/ @font-face declarations for self-hosted fonts
+  let 字体声明 = 自托管.map(f => "@font-face{font-family:\"" + f.family + "\";src:url(\"" + f.file + "\") format(\"woff2\");font-display:swap}").join("\n")
+  // CSS 字体列表:通用族(serif 等)不加引号 / Generic families stay unquoted
+  let css-族(v) = if v == none { "" } else { v.map(x => if str(x) in ("serif", "sans-serif", "monospace", "cursive") { str(x) } else { "'" + str(x) + "'" }).join(", ") }
+  // 自托管族名插到列表首位;语言 TOML 未配置时保持原列表
+  // / Prepend the self-hosted family when configured; otherwise keep the list
+  let 加首选(键, v) = {
+   let 首选 = web-cfg.at(键, default: none)
+   if 首选 == none { css-族(v) } else { "'" + 首选 + "'" + (if css-族(v) == "" { "" } else { ", " + css-族(v) }) }
+  }
+  let 粗体族 = web-cfg.at("bold-family", default: none)
+  let 字体变量 = (
+   ":root{"
+   + "--uh-body-font:" + 加首选("body-family", body-fonts) + ";"
+   + "--uh-header-font:" + 加首选("header-family", header-fonts) + ";"
+   + "--uh-comment-font:" + 加首选("comment-family", comment-fonts) + ";"
+   + "--uh-outline-font:" + 加首选("outline-family", outline-fonts) + ";"
+   + (if 粗体族 == none { "" } else { "--uh-bold-font:'" + 粗体族 + "';" })
+   + "}"
+  )
+  // 主题变量:网页默认色与 web.css 保持一致,可经 主题: 覆盖
+  // / Theme variables: web defaults mirror web.css, overridable via 主题:
+  let 主题变量 = (
+   ":root{"
+   + "--uh-red:" + _css色(主题.at("标题色", default: "#8b0000")) + ";"
+   + "--uh-yellow:" + _css色(主题.at("强调色", default: "#d4a017")) + ";"
+   + "--uh-paper:" + _css色(主题.at("纸色", default: "#f4eedd")) + ";"
+   + "--uh-ink:" + _css色(主题.at("墨色", default: "#2b2b2b")) + ";}"
+  )
+  // 阅读器档位:字号(名, 倍率)/ 字体(名, CSS 字体栈;none 表示沿用正文字体)
+  // / Reader presets: size (name, scale) / font (name, CSS stack; none = body font)
+  let 字号档 = 阅读器.at("字号", default: (("小", 0.88), ("中", 1), ("大", 1.15), ("特大", 1.3)))
+  let 字体档 = 阅读器.at("字体", default: (("楷体", none), ("宋体", "\"Songti SC\", \"SimSun\", serif"), ("黑体", "\"PingFang SC\", \"Microsoft YaHei\", sans-serif")))
+  let 阅读器规则 = (
+   (字号档.enumerate().map(((i, d)) => "body:has(#uh-fs-" + str(i) + ":checked){--uh-zoom:" + str(d.at(1)) + "}").join("\n")
+    + "\n"
+    + 字体档.enumerate().filter(((i, d)) => d.at(1) != none).map(((i, d)) => "body:has(#uh-ft-" + str(i) + ":checked){--uh-body-font:" + d.at(1) + "}").join("\n"))
+  )
+  // 网页样式表:见 _网页样式(),其中的原样标记保证 CSS 标点不被替换
+  // / Web stylesheet via _网页样式(); its raw-text marker protects CSS punctuation
+  html.elem("style", _网页样式(字体声明: 字体声明, 字体变量: 字体变量, 主题变量: 主题变量, 阅读器: 阅读器规则))
 
   // 修 typst html 导出 align() 内容丢失:重建其正文
   show align: it => it.body
@@ -886,19 +979,21 @@
   }
 
   body
-  // 页面底部:ICP 备案号(链接到工信部备案系统)
-  html.elem("footer", attrs: (class: "uh-icp",))[
-   #html.elem("a", attrs: (href: "https://beian.miit.gov.cn/", target: "_blank",))[
-    京ICP备2026033372号-1
+  // 页面底部:备案号(可经 备案号:/备案链接: 覆盖,留空则不渲染)
+  // / Footer: ICP filing link (overridable via 备案号:/备案链接:; empty = hidden)
+  if 备案号 != "" {
+   html.elem("footer", attrs: (class: "uh-icp",))[
+    #html.elem("a", attrs: (href: 备案链接, target: "_blank",))[#备案号]
    ]
-  ]
+  }
 
   // 阅读器设置面板:默认隐藏,点击右上角"阅读器"(:target)展开。
-  // 档位用隐藏 radio 的 :checked 状态配 body:has() 切 CSS 变量(字号/字体),
-  // 开合与切换全走 CSS,无需脚本。样式见 web.css。
-  // / Reader panel: shown via :target, options switched via :has(:checked); no script.
-  let 阅读器档位(组, id, 名, 选中) = {
-   let 属性 = (type: "radio", name: 组, id: id)
+  // 档位来自 阅读器: 参数(字号/字体),选中态与开合全走 CSS,无需脚本。
+  // / Reader panel: shown via :target; presets come from the 阅读器: option.
+  let 默认字号 = calc.min(阅读器.at("默认字号", default: 1), 字号档.len() - 1)
+  let 默认字体 = calc.min(阅读器.at("默认字体", default: 0), 字体档.len() - 1)
+  let 阅读器档位(组, i, 名, 选中) = {
+   let 属性 = (type: "radio", name: 组, id: 组 + "-" + str(i))
    if 选中 { 属性.checked = "checked" }
    html.elem("label", attrs: (class: "uh-reader-opt",))[
     #html.elem("input", attrs: 属性)
@@ -914,16 +1009,15 @@
     ]
     #html.elem("div", attrs: (class: "uh-reader-row",))[
      #html.elem("span", attrs: (class: "uh-reader-label",))[字号]
-     #阅读器档位("uh-fs", "uh-fs-s", "小", false)
-     #阅读器档位("uh-fs", "uh-fs-m", "中", true)
-     #阅读器档位("uh-fs", "uh-fs-l", "大", false)
-     #阅读器档位("uh-fs", "uh-fs-xl", "特大", false)
+     #for (i, d) in 字号档.enumerate() [
+      #阅读器档位("uh-fs", i, d.at(0), i == 默认字号)
+     ]
     ]
     #html.elem("div", attrs: (class: "uh-reader-row",))[
      #html.elem("span", attrs: (class: "uh-reader-label",))[字体]
-     #阅读器档位("uh-ft", "uh-ft-kai", "楷体", true)
-     #阅读器档位("uh-ft", "uh-ft-song", "宋体", false)
-     #阅读器档位("uh-ft", "uh-ft-hei", "黑体", false)
+     #for (i, d) in 字体档.enumerate() [
+      #阅读器档位("uh-ft", i, d.at(0), i == 默认字体)
+     ]
     ]
    ]
   ]
@@ -1094,11 +1188,13 @@
 //  stats - 字典,键为属性名,值为数值 / Dict of ability name -> score
 //  color - 属性名的强调色,默认深红 / Accent color for ability names
 // ------------------------------------------------------------
-#let 属性表(stats, color: darkred) = {
+#let 属性表(stats, color: none) = context {
+ // 颜色缺省取主题标题色 / Defaults to the theme heading color
+ let 色 = if color == none { _标题色.get() } else { color }
  let content = ()
  // 第一行:属性名(强调色、加粗)/ First row: ability names (accent, bold)
  for k in stats.keys() {
-  content.push([#text(fill: color, weight: 700, k)])
+  content.push([#text(fill: 色, weight: 700, k)])
  }
  // 第二行:数值(修正)/ Second row: score (modifier)
  for k in stats.values() {
@@ -1114,11 +1210,11 @@
 //  contents - 框内正文 / Box body content
 //  breakable - 是否允许跨页,默认开启 / Whether the block can break across pages
 // ------------------------------------------------------------
-#let 侧标框(header, contents, breakable: true) = block(
+#let 侧标框(header, contents, breakable: true) = context block(
  breakable: breakable,
  inset: 10pt,
  fill: rgb("#fefff9"),
- stroke: (right: 1pt + darkyellow, left: 1pt + darkyellow),
+ stroke: (right: 1pt + _强调色.get(), left: 1pt + _强调色.get()),
  width: 100%,
 )[
  #set par(spacing: .6em, first-line-indent: 1.5em)
@@ -1137,12 +1233,12 @@
 //  breakable - 是否允许跨页,默认开启 / Whether the block can break across pages
 //      Dict with creature info and optional action sections
 // ------------------------------------------------------------
-#let 属性框(stats, theme: (:), breakable: true) = {
- // 主题解析:缺省为经典深红/白底 / Resolve theme, default classic darkred
- let 标题色 = theme.at("title", default: darkred)
- let 强调色 = theme.at("accent", default: darkred)
+#let 属性框(stats, theme: (:), breakable: true) = context {
+ // 主题解析:缺省取文档主题标题色 / Resolve theme, default to the document theme color
+ let 标题色 = theme.at("title", default: _标题色.get())
+ let 强调色 = theme.at("accent", default: _强调色.get())
  let 浅底色 = theme.at("soft", default: white)
- let 边框色 = theme.at("border", default: darkred)
+ let 边框色 = theme.at("border", default: _标题色.get())
 
  // 标题栏文字色:默认白色,可经 theme.title-fg 覆盖 / Title text color, default white
  let 标题文字色 = theme.at("title-fg", default: white)
@@ -1211,7 +1307,7 @@
      if section in stats.keys() {
       block[
        #set par(spacing: 1em)
-       #text(size: 1.3em, fill: 强调色)[#box(width:100%, inset: (bottom: 3pt), stroke: (bottom: 1pt+darkyellow))[#smallcaps(section)]]
+       #text(size: 1.3em, fill: 强调色)[#box(width:100%, inset: (bottom: 3pt), stroke: (bottom: 1pt+强调色))[#smallcaps(section)]]
        #for action in stats.at(section) {
         [_*#text(fill: 强调色)[#action.at(0)].*_ #action.at(1)  ]
        }
@@ -1230,7 +1326,7 @@
 //     Dict with NPC info; description/background/roleplay use localized labels
 //  breakable - 是否允许跨页,默认开启 / Whether the block can break across pages
 // ------------------------------------------------------------
-#let 人物框(npc, breakable: true) = block(
+#let 人物框(npc, breakable: true) = context block(
  breakable: breakable,
  inset: 12pt,
  fill: white,
@@ -1252,12 +1348,12 @@
    }
   }
 
-  #line(stroke: 2pt + darkred, length: 100%)
+  #line(stroke: 2pt + _标题色.get(), length: 100%)
 
   // 可选的六维属性表 / Optional six-ability stats table
   #if "stats" in npc.keys() {
    属性表(npc.stats)
-   line(stroke: 2pt + darkred, length: 100%)
+   line(stroke: 2pt + _标题色.get(), length: 100%)
   }
 
   // 描述/背景/角色扮演段落(标签来自语言配置)/ Localized description/background/roleplay sections
@@ -1271,7 +1367,7 @@
    for (key, label) in sections {
     if key in npc.keys() {
      block(spacing: 0.8em)[
-      #text(fill: darkred, weight: 700)[#smallcaps(label)] 
+      #text(fill: _标题色.get(), weight: 700)[#smallcaps(label)] 
       #npc.at(key)
      ]
     }
@@ -1319,7 +1415,7 @@
 // 也可通过 include 引入附录文件 / Or include an appendix file:
 //  #appendix[#include "附录文件.typ"]
 // ------------------------------------------------------------
-#let 附录(title: "附录", numbering-fmt: "A.1.", body) = [
+#let 附录(title: "附录", numbering-fmt: "A.1.", body) = context [
  // 切换标题编号为字母格式(附录 A, A.1, A.1.1 ...)/
  // Switch heading numbering to letter format
  #set heading(numbering: numbering-fmt)
@@ -1327,7 +1423,7 @@
  #counter(heading).update(0)
  // 附录分区名:不作为标题,不占用编号;附录正文从一级标题开始
  // Appendix part label: not a heading, does not consume a number; body starts at level-1 headings
- #align(left)[#text(size: 3em, weight: "bold", fill: darkred, font: "Comic Sans MS")[#title]]
+ #align(left)[#text(size: 3em, weight: "bold", fill: _标题色.get(), font: "Comic Sans MS")[#title]]
  #v(0.6em)
  #body
 ]
@@ -1395,7 +1491,7 @@ All original material in this work is copyright by the respective authors and pu
    page(columns: 1, margin: (left: 30mm, right: 30mm, top: 30mm, bottom: 30mm))[
     #text(font: f)[
      #align(center)[
-      #text(fill: darkred, weight: "bold", size: 1.6em)[目录]
+      #text(fill: _标题色.get(), weight: "bold", size: 1.6em)[目录]
      ]
      #outline(title: none)
     ]
@@ -1436,11 +1532,11 @@ All original material in this work is copyright by the respective authors and pu
    #body
   ]
  }
- block(
+ context block(
   breakable: breakable,
   inset: (left: 14pt, top: 5pt, right: 8pt, bottom: 5pt),
   width: 100%,
-  stroke: (left: 2.5pt + darkred),
+  stroke: (left: 2.5pt + _标题色.get()),
   fill: rgb("#fefff9"),
  )[
   #set par(first-line-indent: 0em, spacing: 0.6em)

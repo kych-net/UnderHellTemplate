@@ -41,3 +41,30 @@ comment = ["FZZhaoJiShouJinShuS", "方正赵佶瘦金书 简", "LXGW WenKai", "P
 # 定义目录字体:霞鹜文楷
 outline = ["LXGW WenKai", "LXGW WenKai Mono", "Kaiti SC", "PingFang SC"]
 
+
+# === 网页模式配置(可选) ===
+# -family 键给出自托管字体族名,会插到 [fonts] 对应列表首位;
+# [[web.fonts]] 逐条给出 @font-face 的族名与文件(url 相对 HTML 输出目录)。
+# 不配 [web] 段时,网页按 [fonts] 的系统字体回退渲染。
+[web]
+body-family = "uh-lxgw-mono"
+header-family = "duan-kaixiao"
+comment-family = "zhaoji-shoujin"
+bold-family = "uh-zhenkai"
+
+[[web.fonts]]
+family = "uh-lxgw-mono"
+file = "webfonts/lxgw-wenkai-mono.woff2"
+
+[[web.fonts]]
+family = "uh-zhenkai"
+file = "webfonts/zhenkai-gb.woff2"
+
+[[web.fonts]]
+family = "duan-kaixiao"
+file = "webfonts/duan-kaixiao-full.woff2"
+
+[[web.fonts]]
+family = "zhaoji-shoujin"
+file = "webfonts/zhaoji-shoujin.woff2"
+
