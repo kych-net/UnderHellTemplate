@@ -9,9 +9,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "要发布的版本号(如 0.3.1,不带 v 前缀)"
+        description: "要发布的版本号(如 0.4.0,不带 v 前缀)"
         required: true
-        default: "0.3.1"
+        default: "0.4.0"
 
 permissions:
   repository: read
@@ -48,8 +48,9 @@ jobs:
         run: |
           DEST="/tmp/pkg"
           mkdir -p "$DEST"
-          # 复制包根文件:typst.toml / lib.typ / README.md / LICENSE
-          cp typst.toml lib.typ README.md LICENSE "$DEST/"
+          # 复制包根文件:typst.toml / lib.typ / web.css / README.md / LICENSE
+          # (web.css 必须进包:lib.typ 在 web 模式直接读取它生成网页样式)
+          cp typst.toml lib.typ web.css README.md LICENSE "$DEST/"
           # 复制资源目录:img(背景图等)、languages(语言配置)、example(示例)
           cp -r img languages example "$DEST/"
           rm -f "$DEST/.gitignore" 2>/dev/null || true
@@ -87,7 +88,7 @@ jobs:
           # 放置包文件
           DEST="/tmp/packages/packages/preview/underhell/${VERSION}"
           mkdir -p "$DEST"
-          cp "$ATOMGIT_WORKSPACE/typst.toml" "$ATOMGIT_WORKSPACE/lib.typ" "$ATOMGIT_WORKSPACE/README.md" "$ATOMGIT_WORKSPACE/LICENSE" "$DEST/"
+          cp "$ATOMGIT_WORKSPACE/typst.toml" "$ATOMGIT_WORKSPACE/lib.typ" "$ATOMGIT_WORKSPACE/web.css" "$ATOMGIT_WORKSPACE/README.md" "$ATOMGIT_WORKSPACE/LICENSE" "$DEST/"
           cp -r "$ATOMGIT_WORKSPACE/img" "$ATOMGIT_WORKSPACE/languages" "$ATOMGIT_WORKSPACE/example" "$DEST/"
 
           # 提交并推送
