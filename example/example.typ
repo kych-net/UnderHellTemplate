@@ -8,7 +8,7 @@
   paper: "a4",
   logo: image("img/GenericLogo.png", width: 13%),
   fancy-author: true,
-  元素系统数据: csv("../../文档/元素系统.csv"),
+  元素系统数据: csv("../../文档/附件/元素系统.csv"),
   // Site customization (web output). Omit these to keep the defaults.
   品牌名: "Example Press",
   页脚链接: ((标签: "Home", 网址: "https://example.com", 提示: "Project home"),),

@@ -114,13 +114,13 @@
 // 元素系统 / Element system
 // 每个核心概念用一个"元素"(即普通元素系统的名称)作为 ID。
 // 普通元素系统直接读取 ID 的值本身;其他元素系统为同一元素提供不同名词。
-// 数据以 CSV(宽表)存储(如 文档/元素系统.csv):首行是各元素系统名,
+// 数据以 CSV(宽表)存储(如 文档/附件/元素系统.csv):首行是各元素系统名,
 // 首列是元素 id,单元格为该元素在对应系统下的名词,无名词则留空。
 // 由文档通过 csv() 读取后传入 地狱之下模板(元素系统数据:) 注入。
 // 当前系统缺失某元素时自动回退到普通名词(即 ID)。
 // Each core concept is identified by an "元素" (the common-system name).
 // The 普通 system reads the ID value directly; other systems provide
-// alternative terms. Data is a wide-format CSV (e.g. 文档/元素系统.csv):
+// alternative terms. Data is a wide-format CSV (e.g. 文档/附件/元素系统.csv):
 // header row = system names, first column = element ids, cells = the term
 // under that system (empty if none), read by the document with csv() and
 // injected via 地狱之下模板(元素系统数据:). Missing elements fall back to
