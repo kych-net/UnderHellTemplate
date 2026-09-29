@@ -3,7 +3,7 @@
 用于架空世界内容创作的 [Typst](https://typst.app) 模板——冒险模组、世界设定文档、角色卡片。
 A [Typst](https://typst.app) template for worldbuilding — adventure modules, setting documents, character sheets.
 
-**`@preview/underhell:0.4.1`** · Typst 0.15+ · MIT · [GitHub](https://github.com/kych-net/UnderHell) · [GitCode](https://gitcode.com/CrossDark/UnderHell)
+**`@preview/underhell:0.4.2`** · Typst 0.15+ · MIT · [GitHub](https://github.com/kych-net/UnderHell) · [GitCode](https://gitcode.com/CrossDark/UnderHell)
 
 ---
 
@@ -23,7 +23,7 @@ A [Typst](https://typst.app) template for worldbuilding — adventure modules, s
 Published on Typst Universe — just import it:
 
 ```typst
-#import "@preview/underhell:0.4.1": *
+#import "@preview/underhell:0.4.2": *
 ```
 
 _地狱之下_ 项目自身经 `配置.typ` 再导出(`#import "…/配置.typ": *`),不直接引模板。
@@ -35,7 +35,7 @@ This package targets Typst 0.15+.
 ## 快速开始 · Quick start
 
 ```typst
-#import "@preview/underhell:0.4.1": *
+#import "@preview/underhell:0.4.2": *
 
 #show: 地狱之下模板.with(
   title: "我的设定集",
