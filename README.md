@@ -278,6 +278,13 @@ The `导入` function includes another `.typ` file via `#include` and deepens al
 注意:`set heading(offset:)` 只取非负值,无法把标题变浅;需调整层级时改被导入文件源码即可。
 Note: `set heading(offset:)` only takes non-negative values and cannot shallow-out headings; edit the source file if you need to change levels.
 
+## AI 技能 · AI skill
+
+本仓库内置 AI 助手技能,描述模板开发规范(中文化函数、元素系统、字体、网页输出、Typst Universe 发布流程与已知坑)。
+This repo ships an AI-assistant skill describing template development conventions (localized functions, element system, fonts, web output, the Typst Universe release workflow, and known pitfalls).
+
+- `.skills/SKILL.md`
+
 ## 致谢 · Acknowledgments
 
 灵感来自 [typst-dnd5e](https://github.com/coljac/typst-dnd5e) 及 [DND LaTeX module](https://github.com/rpgtex/DND-5e-LaTeX-Template)。
