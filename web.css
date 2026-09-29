@@ -236,6 +236,27 @@ strong, b { font-family: var(--uh-bold-font, var(--uh-body-font)); font-weight: 
   text-decoration: none;
 }
 .uh-site-link:hover { color: var(--uh-red); border-color: var(--uh-red); }
+/* 首页站内导航卡片:各分页入口(仅网页,PDF 不渲染) */
+.uh-navcards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.5em, 1fr));
+  gap: 0.7em;
+  margin: 1.2em 0 1.8em;
+}
+.uh-navcard {
+  display: block;
+  padding: 0.75em 0.9em;
+  background: #efe7d2;
+  border: 1px solid #ddd6c0;
+  border-left: 4px solid var(--uh-yellow);
+  border-radius: 0.5em;
+  color: var(--uh-red);
+  font-family: var(--uh-header-font);
+  font-size: 1.05em;
+  text-align: center;
+  text-decoration: none;
+}
+.uh-navcard:hover { background: #e7dcc2; border-color: var(--uh-red); }
 /* 行内 TODO:瘦金体(同 评论 字体) */
 .uh-todo { color: var(--uh-orange, orange); font-family: var(--uh-comment-font); }
 :root { --uh-orange: #e07b00; }
