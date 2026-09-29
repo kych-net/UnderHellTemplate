@@ -552,6 +552,17 @@
 //         Element-system data file location: pass the csv() result here,
 //         all systems live in one CSV (columns: id, system, term),
 //         e.g. csv("元素系统.csv"). Not injected by default.
+//  页标题    - 网页每页独立标题;默认 none 时回退到 title。多页站点的
+//         各独立页用它覆盖 <title> 与页头 h1。
+//         Page title for web pages; defaults to title. Multi-page sites use
+//         it to override <title> and the header h1.
+//  网址前缀  - 自托管字体 url 前缀(默认 "/" 即站点根)。CSS 抽成外部文件后
+//         url("webfonts/x.woff2") 会按 CSS 所在目录解析而 404,故拼前缀;
+//         支持子路径部署(如 "/uh/")。不改 languages/*.toml 里的字体文件名。
+//         Prefix for self-hosted font URLs (default "/" = site root). Once CSS
+//         is extracted to an external file, url("webfonts/x.woff2") would
+//         resolve against the CSS dir and 404, so the prefix is prepended.
+//         Also supports sub-path deployment (e.g. "/uh/").
 // ------------------------------------------------------------
 #let 地狱之下模板(title: "",
        author: "",
@@ -569,7 +580,9 @@
        web: "web" in sys.inputs and sys.inputs.web == "true",
        元素系统: if "元素系统" in sys.inputs and sys.inputs.元素系统 != "" { sys.inputs.元素系统 } else { "普通" },
        元素系统数据: none,
+       页标题: none,
        品牌名: "地狱之下",
+       网址前缀: "/",
        页脚链接: ((标签: "PDF", 网址: "https://github.com/kych-net/UnderHell/releases/latest", 提示: "下载 PDF(GitHub 最新发行版)"),
                  (标签: "GitHub", 网址: "https://github.com/kych-net/UnderHell", 提示: "GitHub 仓库"),
                  (标签: "GitCode", 网址: "https://gitcode.com/CrossDark/UnderHell", 提示: "GitCode 仓库")),
@@ -585,8 +598,10 @@
  _标题色.update(标题色)
  _强调色.update(强调色)
  _品牌名.update(品牌名)
+ // 网页页标题:none 时回退到全站 title / Web page title: falls back to site title
+ let 实际标题 = if 页标题 == none { title } else { 页标题 }
  // 设置文档元数据 / Set document metadata
- set document(author: author, title: title)
+ set document(author: author, title: 实际标题)
  // 段落间距(无首行缩进)/ Paragraph spacing (no first-line indent)
  set par(spacing: 0.7em, first-line-indent: (amount: 0em, all: false))
  // set heading(numbering: "1.1")
@@ -788,13 +803,18 @@
    #html.elem("nav", attrs: (class: "uh-site",))[
     // 站点链接由参数 页脚链接: 生成 / Site links come from the 页脚链接: option
     #for 链 in 页脚链接 [
-     #html.elem("a", attrs: (class: "uh-site-link", href: 链.at("网址"), title: 链.at("提示", default: 链.at("标签")), target: "_blank",))[#链.at("标签")]
+     #let 链址 = str(链.at("网址"))
+     #let 链属性 = (class: "uh-site-link", href: 链址, title: 链.at("提示", default: 链.at("标签")))
+     // 仅外链(http/https)新窗口打开;站内链接(以 / 开头)留在当前窗口
+     // / Only external http(s) links open in a new tab; in-site links stay put
+     #if 链址.starts-with("http") { 链属性.target = "_blank" }
+     #html.elem("a", attrs: 链属性)[#链.at("标签")]
     ]
     // 阅读器:点击展开设置面板(调字号/字体),开合靠 :target,无脚本
     #html.elem("a", attrs: (class: "uh-site-link uh-reader-toggle", href: "#uh-reader", title: "阅读器:调整字号与字体",))[阅读器]
    ]
    #if add-title {
-    html.elem("h1", attrs: (class: "uh-title",))[#upper(title)]
+    html.elem("h1", attrs: (class: "uh-title",))[#upper(实际标题)]
    }
    #if subtitle.len() > 0 {
     html.elem("p", attrs: (class: "uh-subtitle",))[#subtitle #if not fancy-author {"by " + author}]
@@ -898,7 +918,11 @@
   let web-cfg = if "web" in lang-toml { lang-toml.web } else { (:) }
   let 自托管 = web-cfg.at("fonts", default: ())
   // @font-face 声明(自托管 woff2)/ @font-face declarations for self-hosted fonts
-  let 字体声明 = 自托管.map(f => "@font-face{font-family:\"" + f.family + "\";src:url(\"" + f.file + "\") format(\"woff2\");font-display:swap}").join("\n")
+  // 相对文件名拼 网址前缀 成绝对路径:样式抽成外部文件后 url 会按 CSS 目录解析
+  // / Prepend 网址前缀 to bare filenames: an external CSS file resolves urls
+  // against its own directory, so bare paths would 404
+  let 字体址(f) = if str(f).starts-with("/") or str(f).starts-with("http") { str(f) } else { 网址前缀 + str(f) }
+  let 字体声明 = 自托管.map(f => "@font-face{font-family:\"" + f.family + "\";src:url(\"" + 字体址(f.file) + "\") format(\"woff2\");font-display:swap}").join("\n")
   // CSS 字体列表:通用族(serif 等)不加引号 / Generic families stay unquoted
   let css-族(v) = if v == none { "" } else { v.map(x => if str(x) in ("serif", "sans-serif", "monospace", "cursive") { str(x) } else { "'" + str(x) + "'" }).join(", ") }
   // 自托管族名插到列表首位;语言 TOML 未配置时保持原列表
