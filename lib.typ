@@ -743,6 +743,8 @@
     #html.elem("a", attrs: (class: "uh-site-link", href: "https://github.com/kych-net/UnderHell/releases/latest", title: "下载 PDF(GitHub 最新发行版)", target: "_blank",))[PDF]
     #html.elem("a", attrs: (class: "uh-site-link", href: "https://github.com/kych-net/UnderHell", title: "GitHub 仓库", target: "_blank",))[GitHub]
     #html.elem("a", attrs: (class: "uh-site-link", href: "https://gitcode.com/CrossDark/UnderHell", title: "GitCode 仓库", target: "_blank",))[GitCode]
+    // 阅读器:点击展开设置面板(调字号/字体),开合靠 :target,无脚本
+    #html.elem("a", attrs: (class: "uh-site-link uh-reader-toggle", href: "#uh-reader", title: "阅读器:调整字号与字体",))[阅读器]
    ]
    #if add-title {
     html.elem("h1", attrs: (class: "uh-title",))[#upper(title)]
@@ -888,6 +890,41 @@
   html.elem("footer", attrs: (class: "uh-icp",))[
    #html.elem("a", attrs: (href: "https://beian.miit.gov.cn/", target: "_blank",))[
     京ICP备2026033372号-1
+   ]
+  ]
+
+  // 阅读器设置面板:默认隐藏,点击右上角"阅读器"(:target)展开。
+  // 档位用隐藏 radio 的 :checked 状态配 body:has() 切 CSS 变量(字号/字体),
+  // 开合与切换全走 CSS,无需脚本。样式见 web.css。
+  // / Reader panel: shown via :target, options switched via :has(:checked); no script.
+  let 阅读器档位(组, id, 名, 选中) = {
+   let 属性 = (type: "radio", name: 组, id: id)
+   if 选中 { 属性.checked = "checked" }
+   html.elem("label", attrs: (class: "uh-reader-opt",))[
+    #html.elem("input", attrs: 属性)
+    #名
+   ]
+  }
+  html.elem("div", attrs: (class: "uh-reader", id: "uh-reader",))[
+   #html.elem("a", attrs: (class: "uh-reader-backdrop", href: "#uh-reader-off", title: "关闭",))[]
+   #html.elem("div", attrs: (class: "uh-reader-panel",))[
+    #html.elem("div", attrs: (class: "uh-reader-head",))[
+     阅读设置
+     #html.elem("a", attrs: (class: "uh-reader-close", href: "#uh-reader-off", title: "关闭",))[✕]
+    ]
+    #html.elem("div", attrs: (class: "uh-reader-row",))[
+     #html.elem("span", attrs: (class: "uh-reader-label",))[字号]
+     #阅读器档位("uh-fs", "uh-fs-s", "小", false)
+     #阅读器档位("uh-fs", "uh-fs-m", "中", true)
+     #阅读器档位("uh-fs", "uh-fs-l", "大", false)
+     #阅读器档位("uh-fs", "uh-fs-xl", "特大", false)
+    ]
+    #html.elem("div", attrs: (class: "uh-reader-row",))[
+     #html.elem("span", attrs: (class: "uh-reader-label",))[字体]
+     #阅读器档位("uh-ft", "uh-ft-kai", "楷体", true)
+     #阅读器档位("uh-ft", "uh-ft-song", "宋体", false)
+     #阅读器档位("uh-ft", "uh-ft-hei", "黑体", false)
+    ]
    ]
   ]
  } else {

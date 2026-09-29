@@ -40,13 +40,14 @@ html {
   background: var(--uh-paper);
 }
 body {
-  max-width: 46em;
+  max-width: 48rem;   /* 固定版心宽,不随阅读器字号一起缩放 */
   margin: 0 auto;
   padding: 2.5em 1.5em 5em;
   font-family: var(--uh-body-font);
   color: var(--uh-ink);
   line-height: 1.75;
-  font-size: 17px;
+  /* 基准字号 × 阅读器字号档位(--uh-zoom,由下方 :has 规则设置) */
+  font-size: calc(17px * var(--uh-zoom, 1));
 }
 /* 层级缩进:一级标题不缩进;N 级标题及其下内容缩进 N-1 级 */
 body { --uh-indent: 2em; }
@@ -255,3 +256,70 @@ strong, b { font-family: "uh-zhenkai", var(--uh-body-font); font-weight: 700; }
 /* 行内 TODO:瘦金体(同 评论 字体) */
 .uh-todo { color: var(--uh-orange, orange); font-family: var(--uh-comment-font); }
 :root { --uh-orange: #e07b00; }
+
+/* 阅读器:点击右上角"阅读器"展开设置面板,调字号与字体。
+   开合靠 #uh-reader:target;档位是隐藏 radio,由 body:has(:checked) 切 CSS 变量。
+   开合与切换全走 CSS,无需脚本。
+   / Reader panel: shown via :target; options are hidden radios driving :has() rules. */
+.uh-reader { display: none; }
+.uh-reader:target { display: block; }
+.uh-reader-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(43, 43, 43, 0.3);
+}
+.uh-reader-panel {
+  position: fixed;
+  top: 3.4em; right: 0.8em;
+  z-index: 51;
+  width: min(21em, 88vw);
+  background: #f7f2e7;
+  border: 1px solid #ddd6c0;
+  border-radius: 0.7em;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+  padding: 0.9em 1em 1.1em;
+  font-size: 0.92em;
+}
+.uh-reader-head {
+  display: flex; align-items: center; justify-content: space-between;
+  color: var(--uh-red);
+  font-weight: 700;
+  margin-bottom: 0.7em;
+}
+.uh-reader-close { color: #55503e; text-decoration: none; padding: 0 0.3em; }
+.uh-reader-close:hover { color: var(--uh-red); }
+.uh-reader-row {
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: 0.4em;
+  margin: 0.5em 0;
+}
+.uh-reader-label { width: 2.6em; color: #55503e; }
+.uh-reader-opt {
+  display: inline-block;
+  padding: 0.15em 0.7em;
+  border: 1px solid #ddd6c0;
+  border-radius: 999px;
+  background: #efe7d2;
+  color: #55503e;
+  cursor: pointer;
+  user-select: none;
+}
+.uh-reader-opt:hover { border-color: var(--uh-red); color: var(--uh-red); }
+.uh-reader-opt:has(input:checked) {
+  background: var(--uh-red);
+  border-color: var(--uh-red);
+  color: #fff;
+}
+/* 隐藏 radio:仍能被 :checked 匹配,但不占位 */
+.uh-reader-opt input { position: absolute; width: 0; height: 0; opacity: 0; }
+
+/* 字号档位:缩放正文基准字号(标题用 em,随之缩放) */
+body:has(#uh-fs-s:checked)  { --uh-zoom: 0.88; }
+body:has(#uh-fs-m:checked)  { --uh-zoom: 1; }
+body:has(#uh-fs-l:checked)  { --uh-zoom: 1.15; }
+body:has(#uh-fs-xl:checked) { --uh-zoom: 1.3; }
+
+/* 字体档位:默认楷体(自托管霞鹜文楷等宽);宋体/黑体走系统字体回退 */
+body:has(#uh-ft-song:checked) { --uh-body-font: "Songti SC", "SimSun", "Noto Serif CJK SC", serif; }
+body:has(#uh-ft-hei:checked)  { --uh-body-font: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; }
