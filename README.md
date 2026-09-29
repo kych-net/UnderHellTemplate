@@ -9,8 +9,8 @@
 这是一个用于架空世界内容创作的 [Typst](https://typst.app) 模板,适用于冒险模组、世界设定文档、角色卡片等场景。
 A [Typst](https://typst.app) template for worldbuilding content: adventure modules, setting documents, character sheets, and more.
 
-模板名为 `underhell`,已发布至 Typst Universe,可通过 `#import "@preview/underhell:0.4.0": *` 导入。本仓库内_地狱之下_项目自身则通过相对路径引用:`#import "../模板/lib.typ": *`。
-The template is named `underhell` and published to Typst Universe, imported via `#import "@preview/underhell:0.4.0": *`. Inside this repo the _UnderHell_ project itself references it by relative path: `#import "../模板/lib.typ": *`.
+模板名为 `underhell`,已发布至 Typst Universe,可通过 `#import "@preview/underhell:0.4.1": *` 导入。本仓库内_地狱之下_项目自身则通过相对路径引用:`#import "../模板/lib.typ": *`。
+The template is named `underhell` and published to Typst Universe, imported via `#import "@preview/underhell:0.4.1": *`. Inside this repo the _UnderHell_ project itself references it by relative path: `#import "../模板/lib.typ": *`.
 
 **注意**:本包已更新以兼容最新版本的 Typst (0.13),可提交至 Typst Universe.
 **Note**: This package is updated to work with the latest Typst (0.13) and is ready for Typst Universe.
