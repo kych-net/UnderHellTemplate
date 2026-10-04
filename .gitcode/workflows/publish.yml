@@ -11,7 +11,7 @@ on:
       version:
         description: "要发布的版本号(如 0.4.0,不带 v 前缀)"
         required: true
-        default: "0.4.2"
+        default: "0.5.0"
 
 permissions:
   repository: read
@@ -88,8 +88,8 @@ jobs:
           # 放置包文件
           DEST="/tmp/packages/packages/preview/underhell/${VERSION}"
           mkdir -p "$DEST"
-          cp "$ATOMGIT_WORKSPACE/typst.toml" "$ATOMGIT_WORKSPACE/lib.typ" "$ATOMGIT_WORKSPACE/web.css" "$ATOMGIT_WORKSPACE/README.md" "$ATOMGIT_WORKSPACE/LICENSE" "$DEST/"
-          cp -r "$ATOMGIT_WORKSPACE/img" "$ATOMGIT_WORKSPACE/languages" "$ATOMGIT_WORKSPACE/example" "$DEST/"
+          cp "$ATOMGIT_WORKSPACE/typst.toml" "$ATOMGIT_WORKSPACE/lib.typ" "$ATOMGIT_WORKSPACE/web.css" "$ATOMGIT_WORKSPACE/README.md" "$ATOMGIT_WORKSPACE/LICENSE" "$ATOMGIT_WORKSPACE/thumbnail.png" "$DEST/"
+          cp -r "$ATOMGIT_WORKSPACE/img" "$ATOMGIT_WORKSPACE/languages" "$ATOMGIT_WORKSPACE/example" "$ATOMGIT_WORKSPACE/template" "$DEST/"
 
           # 提交并推送
           git add -A

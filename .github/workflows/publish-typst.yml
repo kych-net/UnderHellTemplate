@@ -11,7 +11,7 @@ on:
       version:
         description: "要发布的版本号(如 0.4.0,不带 v 前缀)"
         required: true
-        default: "0.4.2"
+        default: "0.5.0"
 
 env:
   # 注册表所在的托管平台
@@ -81,9 +81,10 @@ jobs:
           mkdir -p "$DEST"
           # 复制包根文件:typst.toml / lib.typ / web.css / README.md / LICENSE
           # (web.css 必须进包:lib.typ 在 web 模式直接读取它生成网页样式)
-          cp typst.toml lib.typ web.css README.md LICENSE "$DEST/"
-          # 复制资源目录:img(背景图等)、languages(语言配置)、example(示例)
-          cp -r img languages example "$DEST/"
+          cp typst.toml lib.typ web.css README.md LICENSE thumbnail.png "$DEST/"
+          # 复制资源目录:img(背景图等)、languages(语言配置)、example(仓库内示例)、
+          # template(typst init 脚手架,必须进包)
+          cp -r img languages example template "$DEST/"
           # 删除可能的 .gitignore / 构建产物,包内不需要
           rm -f "$DEST/.gitignore" 2>/dev/null || true
           echo "=== 包内容 ==="

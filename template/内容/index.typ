@@ -1,26 +1,32 @@
-#import "@preview/underhell:0.4.2": *
+// 全量单页入口 → URL /(站点首页)。
+// 本示例演示"内容/ 目录树 = 网页 URL":相对 内容/ 的路径即 URL 段。
+//   内容/index.typ         → /
+//   内容/世界纲要.typ       → /世界纲要/
+//   内容/生物/index.typ     → /生物/          (目录页:目录名即 URL 段)
+//   内容/生物/怪动植物.typ   → /生物/怪动植物/
+// 页面集合由构建脚本扫 内容/**/*.typ 得到(空文件也算一页);配置.typ 的 导航
+// 只配导航卡片,不定义 URL。独立页由 页面.typ 编译(见其头部注释)。
+// / Full single-page entry → URL /. The 内容/ tree defines the site URLs.
+#import "配置.typ": *
 
-#show: 地狱之下模板.with(
-  title: "A Date with Destiny",
-  subtitle: "A one-shot adventure for 4 players of levels 1-4 - with dinosaurs",
-  author: "Colin Jacobs",
-  cover: image("img/party.png", height: 100%),
-  paper: "a4",
-  logo: image("img/GenericLogo.png", width: 13%),
-  fancy-author: true,
-  元素系统数据: csv("../../文档/附件/元素系统.csv"),
-  // Site customization (web output). Omit these to keep the defaults.
-  品牌名: "Example Press",
-  页脚链接: ((标签: "Home", 网址: "https://example.com", 提示: "Project home"),),
-  备案号: "",
-)
+#show: 网页模板
+
+// 站内导航卡片(仅网页):顶层页入口,PDF 不渲染。
+// / In-site nav cards (web only).
+#if is_web() [
+  #html.elem("nav", attrs: (class: "uh-navcards",))[
+    #for (路径, 名) in 导航.filter(p => not p.at(0).contains("/")) [
+      #html.elem("a", attrs: (class: "uh-navcard", href: "/" + 路径 + "/"))[#名]
+    ]
+  ]
+]
 
 == Element-system demo
 
 Elements are named by their 普通-system term (e.g. 怪动植物). #元素("怪动植物") = 怪动植物 (formal). Switch to the "别名" system for the alias:
 
 #设置元素系统("别名")
-Alias system: #元素("怪动植物"), #元素("怪动物"), #元素("地狱") (no alias, falls back to 普通)
+Alias system: #元素("怪动植物"), #元素("怪动物")
 
 #设置元素系统("academic")
 Academic: #元素("超级系统") (怪动植物 missing there, falls back to 普通: #元素("怪动植物"))
@@ -34,9 +40,7 @@ Back to 普通: #元素("怪动植物")
 
 *Designer* Personface McHumanhead
 
-*Template* Colin Jacobs
-
-*Illustrations* Some artists
+*Template* UnderHell
 
 #lorem(25)
 #pagebreak()
@@ -49,8 +53,6 @@ Back to 普通: #元素("怪动植物")
 )[
 = A headline that grabs your attention
 ]
-
-
 
 == Adventure awaits!
 
@@ -77,31 +79,20 @@ Back to 普通: #元素("怪动植物")
 
 #lorem(150)
 
-*And now we want a page with a big image at the top.*
-
-#顶部图(image("img/dragongold.png", width: 140%))
-
-And here it is.
-#lorem(100)
+// 需要图片时:把图片放进本项目,再按相对路径引用(相对引用该字符串的文件所在目录):
+// #顶部图(image("内容/图.png", width: 140%))   // 页面顶部大图,横跨两栏,抑制该页页脚
+// #底部图(image("内容/图.png", width: 140%))   // 页面底部大图
 
 = More things!
 
 #lorem(204)
 
-#lorem(115)
-
-
-
-And more here!
 #提示框("Look here!")[#lorem(44)]
 
 #lorem(390)
 
-// #lorem(402)
 #提示框("Something to note")[#lorem(133)]
 #lorem(300)
-
-#底部图(image("img/swordtorn.png", width: 140%))
 
 #lorem(400)
 #属性框((
@@ -118,13 +109,13 @@ And more here!
       Challenge: [5 (1800 XP)]
   ),
   traits: (
-    ("Scary Appearance", [While the monster is being ferocious, enemies are at -2 to all WIS saving throws.]), 
+    ("Scary Appearance", [While the monster is being ferocious, enemies are at -2 to all WIS saving throws.]),
     ("Reaching Tentacles", [The monster has six slimy tentacles. Each tentacle
     can be attacked (AC 20; 10 hit points; immune to psychic damage). Destroying a tentacle makes the monster angry.])
 ),
   Actions: (
-    ("Multiattack", [While the monster remains alive, it is a thorn in the party's side.]), 
-    ("Saliva", [If a character is eaten by the monster, it takes 1d10 saliva damage per round.]), 
+    ("Multiattack", [While the monster remains alive, it is a thorn in the party's side.]),
+    ("Saliva", [If a character is eaten by the monster, it takes 1d10 saliva damage per round.]),
     ("Tentacle squeeze", [If the monster has captured an enemy, it can squeeze them for 1d12 crushing damage.])
   )
 ))
@@ -167,10 +158,10 @@ And more here!
   name: "Dancing Legs",
   spell-type: [2nd level evocation],
   properties: (
-    ("Casting time", [Special]), 
-    ("Range", [Self]), 
-    ("Duration", [Until long rest]), 
-    ("Components", [V, S]), 
+    ("Casting time", [Special]),
+    ("Range", [Self]),
+    ("Duration", [Until long rest]),
+    ("Components", [V, S]),
   ),
   description: [Your legs start dancing, and you dance compulsively, and in an experimental fashion. #lorem(20)]
   )
@@ -180,10 +171,10 @@ And more here!
   name: "Clapping Hands",
   spell-type: [2nd level evocation],
   properties: (
-    ("Casting time", [Special]), 
-    ("Range", [Self]), 
-    ("Duration", [Until long rest]), 
-    ("Components", [V, S]), 
+    ("Casting time", [Special]),
+    ("Range", [Self]),
+    ("Duration", [Until long rest]),
+    ("Components", [V, S]),
   ),
   description: [Your legs start dancing, and you dance compulsively, and in an experimental fashion. #lorem(20)]
   )

@@ -12,7 +12,8 @@ description: "地狱之下(UnderHell)的 Typst 模板开发规范:中文化函�
 
 - `模板/` 是独立 git 子模块 UnderHellTemplate,已发布至 Typst Universe(`@preview/underhell`)。
 - 改动后需在子模块内 commit/push,再更新根仓库子模块指针(默认用根仓库 `推送.sh`)。
-- 包分发文件:根目录下的 `typst.toml`、`lib.typ`、`web.css`、`README.md`、`LICENSE`、`img/`、`languages/`、`example/`。包外的 `.github/`、`.gitcode/`、`.skills/`、`webfonts/` 不随包发布(见 typst.toml exclude)。`web.css` **必须进包**:lib.typ 在 web 模式直接 `read("web.css")`。
+- 包分发文件:根目录下的 `typst.toml`、`lib.typ`、`web.css`、`README.md`、`LICENSE`、`img/`、`languages/`、`example/`、`template/`、`thumbnail.png`。包外的 `.github/`、`.gitcode/`、`.skills/`、`webfonts/` 不随包发布(见 typst.toml exclude)。`web.css` **必须进包**:lib.typ 在 web 模式直接 `read("web.css")`。
+- `example/` 与 `template/` 内容同构,需**双份维护**:`example/` 是仓库内示例(在 `exclude` 内,不进下载 bundle);`template/` 是 `typst init @preview/underhell` 的脚手架,**必须进包**(不在 `exclude`),且须自包含(不引用仓库外路径)。`thumbnail.png` 是模板缩略图(长边 ≥1080px),Universe 打包时自动排除,但两个发布 workflow 手工 cp 时要带上。
 
 ## 中文化函数(模板/lib.typ)
 
@@ -103,7 +104,8 @@ description: "地狱之下(UnderHell)的 Typst 模板开发规范:中文化函�
 - 版本号只改 `typst.toml` 的 `version`;发布用 `.github/workflows/publish-typst.yml`,
   推送 `v*` 标签或手动触发(输入不带 v 前缀的版本号)。
 - 流程:校验 typst.toml 版本 → checkout `typst/packages` → 放置包文件
-  (typst.toml/lib.typ/web.css/README.md/LICENSE/img/languages/example)→ fork push → `gh pr create`。
+  (typst.toml/lib.typ/web.css/README.md/LICENSE/thumbnail.png/img/languages/example/template)→ fork push → `gh pr create`。
+- `[template]` 段(typst.toml):`path = "template"`、`entrypoint = "内容/index.typ"`、`thumbnail = "thumbnail.png"`。模板包须在 `categories` 至少指定一个类别(现有 layout/report 已满足)。改 `template/` 后重导缩略图:`typst compile --package-path <本地包> --root template -f png --pages 1 --ppi 250 template/内容/index.typ thumbnail.png`。
 - fork 需配置 `TYPST_PACKAGES_TOKEN`(fine-grained:Contents/Workflow/Pull requests 三项写权限)。
 - 包名 `underhell` 下每个版本目录 `packages/preview/underhell/<version>/`,新版本需新建目录,
   勿覆盖旧版本。
