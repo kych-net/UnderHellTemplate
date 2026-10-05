@@ -5,7 +5,7 @@
 // images as captioned figures, mitex handles inline LaTeX math.
 #import "../配置.typ": *
 #import "@preview/cmarker:0.1.10": render
-#import "@preview/mitex:0.2.6": mitex
+#import "@preview/mitex:0.2.7": mitex
 
 = 关于
 

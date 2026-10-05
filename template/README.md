@@ -11,7 +11,6 @@
 - `内容/` —— 分章正文,每个 `.typ` 都会编译出一份文档
 - `脚本/` —— 独立页入口 `页面.typ` 与网页后处理 `web_post.sh`
 - `附件/` —— 元素系统数据与素材
-- `.github/workflows/web.yml` —— 推送 `main` 后自动 `make web`,把产物发到 `web` 分支
 
 ## 快速开始
 
@@ -53,9 +52,51 @@ $$
 
 ## 部署网页
 
-`make web` 产出的 `dist/` 是纯静态站点,可直接托管。自带的 `.github/workflows/web.yml`
-会在推送 `main` 后自动构建,并把产物强制推到 `web` 分支;下面两个平台都按
-「绑 `web` 分支、平台侧不再构建」来接。
+`make web` 产出的 `dist/` 是纯静态站点,可直接托管。把下面这份工作流存为
+`.github/workflows/web.yml`,推送 `main` 后它会自动构建,并把产物强制推到 `web` 分支;
+下面两个平台都按「绑 `web` 分支、平台侧不再构建」来接。
+
+这份文件需要自己建一次:Typst 打包会跳过 `.github/`,该目录不进包,`typst init`
+出来的项目里没有它。
+
+```yaml
+name: 构建静态网页并发布到 web 分支
+
+# 把 make web 的产物提交到 web 分支,供 Cloudflare Pages / EdgeOne Pages 绑定发布。
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 安装 Typst
+        run: |
+          curl -fL https://github.com/typst/typst/releases/download/v0.15.1/typst-x86_64-unknown-linux-musl.tar.xz -o /tmp/typst.tar.xz
+          tar -xf /tmp/typst.tar.xz -C /tmp
+          sudo mv /tmp/typst-x86_64-unknown-linux-musl/typst /usr/local/bin/typst
+
+      - name: 检出仓库
+        uses: actions/checkout@v4
+
+      - name: 构建网页(make web)
+        run: make web
+
+      - name: 推送到 web 分支
+        working-directory: dist
+        run: |
+          git init -q -b web
+          git config user.name "web-bot"
+          git config user.email "web-bot@users.noreply.github.com"
+          git add -A
+          git commit -q -m "网页构建:${GITHUB_SHA}"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" web
+```
 
 ### Cloudflare Pages
 
