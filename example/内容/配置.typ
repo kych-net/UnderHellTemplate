@@ -3,7 +3,7 @@
 // / Site config: re-exports the template, defines the web template and the
 // nav-card list. Every page imports from here.
 
-#import "@preview/underhell:0.5.0": *
+#import "@preview/underhell:0.6.0": *
 
 // 右上角导航栏:站内只留首页,外链(http)自动新窗口打开。
 #let 站内链接 = (

@@ -3,7 +3,7 @@
 // / Site config: re-exports the template and defines the web template.
 // Chapters only write #import "../配置.typ": * — the template is re-exported here.
 
-#import "@preview/underhell:0.5.0": *
+#import "@preview/underhell:0.6.0": *
 
 // 元素系统数据:宽表 CSV,首列是元素 id,其后每列是一个元素系统,
 // 单元格为该元素在对应系统下的名词(留空则回退)。列名可自行增删。
