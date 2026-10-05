@@ -34,13 +34,20 @@ This package targets Typst 0.15+.
 
 ## 用模板起项目 · Start from the template
 
-本包同时是模板(见 `typst.toml` 的 `[template]`)。`typst init` 会生成一个含 `内容/` 目录树的项目骨架——相对 `内容/` 的路径即网页 URL 段,页面集合由构建脚本扫描目录树得到。
-This package doubles as a template: `typst init` scaffolds a project whose `内容/` tree defines the site URLs.
+本包同时是模板(见 `typst.toml` 的 `[template]`)。`typst init` 会生成一个可直接编译的示例项目:根下 `配置.typ`(站点配置)与 `Makefile`,`内容/` 下是分章的正文。
+This package doubles as a template: `typst init` scaffolds a ready-to-build project — `配置.typ` and `Makefile` at the root, chapters under `内容/`.
 
 ```sh
 typst init @preview/underhell:0.5.0 我的设定集
 cd 我的设定集
-typst compile 内容/index.typ out.pdf
+make all     # PDF → dist/ ; make web → HTML ; make watch → 监听自动重编
+```
+
+直接调 typst 时须带 `--root .`——`内容/` 下的正文以 `../配置.typ` 引用根目录的配置。
+When calling typst directly, pass `--root .` — chapters under `内容/` import the root config via `../配置.typ`:
+
+```sh
+typst compile --root . 内容/index.typ out.pdf
 ```
 
 Universe 页面上的 “Create project in app” 按钮等价于同一操作。

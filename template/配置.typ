@@ -1,7 +1,7 @@
 // 站点配置:模板成员再导出 + 网页模板。
-// 各章只写 #import "配置.typ": *(模板成员经它再导出),不直接引 lib.typ。
+// 各章只写 #import "../配置.typ": *(模板成员经它再导出),不直接引 lib.typ。
 // / Site config: re-exports the template and defines the web template.
-// Chapters only write #import "配置.typ": * — the template is re-exported here.
+// Chapters only write #import "../配置.typ": * — the template is re-exported here.
 
 #import "@preview/underhell:0.5.0": *
 

@@ -3,7 +3,7 @@
 // 各章自带 #import "…/配置.typ": *(模板成员经它再导出)。
 // / Entry point: compile this file for the whole document. Chapters live in
 // separate files under 内容/ and are merged with #include.
-#import "配置.typ": *
+#import "../配置.typ": *
 
 #show: 网页模板
 

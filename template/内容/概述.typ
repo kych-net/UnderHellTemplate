@@ -1,6 +1,6 @@
 // 第一章:说明本模板的用途与常用排版组件。
 // / Chapter 1: what this template is for, plus common components.
-#import "配置.typ": *
+#import "../配置.typ": *
 
 = 概述
 

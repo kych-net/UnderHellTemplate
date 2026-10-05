@@ -1,6 +1,6 @@
 // 第二章:演示属性框 / 人物框 / 法术三个组件。
 // / Chapter 2: showcases the stat block, NPC box and spell card components.
-#import "配置.typ": *
+#import "../配置.typ": *
 
 = 示例
 
