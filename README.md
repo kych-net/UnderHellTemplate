@@ -3,7 +3,7 @@
 用于架空世界内容创作的 [Typst](https://typst.app) 模板——冒险模组、世界设定文档、角色卡片。
 A [Typst](https://typst.app) template for worldbuilding — adventure modules, setting documents, character sheets.
 
-**`@preview/underhell:0.6.0`** · Typst 0.15+ · MIT · [GitHub](https://github.com/kych-net/UnderHell) · [GitCode](https://gitcode.com/CrossDark/UnderHell)
+**`@preview/underhell:0.6.1`** · Typst 0.15+ · MIT · [GitHub](https://github.com/kych-net/UnderHell) · [GitCode](https://gitcode.com/CrossDark/UnderHell)
 
 ---
 
@@ -23,7 +23,7 @@ A [Typst](https://typst.app) template for worldbuilding — adventure modules, s
 Published on Typst Universe — just import it:
 
 ```typst
-#import "@preview/underhell:0.6.0": *
+#import "@preview/underhell:0.6.1": *
 ```
 
 _地狱之下_ 项目自身经 `配置.typ` 再导出(`#import "…/配置.typ": *`),不直接引模板。
@@ -38,7 +38,7 @@ This package targets Typst 0.15+.
 This package doubles as a template: `typst init` scaffolds a ready-to-build project — `配置.typ`, `Makefile` and `README.md` at the root, chapters under `内容/`, element-system data under `附件/`, and a single-page entry plus web post-processing under `脚本/`. `内容/关于.typ` renders `README.md` via `cmarker` (with `mitex` for math), demonstrating Markdown import — images go through `scope` into captioned figures. `make web` builds a multi-page site: every page shares one `/assets/underhell.css`, and elements defined on another page become links.
 
 ```sh
-typst init @preview/underhell:0.6.0 我的设定集
+typst init @preview/underhell:0.6.1 我的设定集
 cd 我的设定集
 make pdf     # 内容/ 下每个 .typ → 一份 PDF(dist/) ; make web → HTML(内容/ 里已有的 .html 原样保留) ; make watch → 监听自动重编
 ```
@@ -56,7 +56,7 @@ The “Create project in app” button on the Universe page does the same.
 ## 快速开始 · Quick start
 
 ```typst
-#import "@preview/underhell:0.6.0": *
+#import "@preview/underhell:0.6.1": *
 
 #show: 地狱之下模板.with(
   title: "我的设定集",
