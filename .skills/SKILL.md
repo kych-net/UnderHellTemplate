@@ -13,7 +13,7 @@ description: "地狱之下(UnderHell)的 Typst 模板开发规范:中文化函�
 - `模板/` 是独立 git 子模块 UnderHellTemplate,已发布至 Typst Universe(`@preview/underhell`)。
 - 改动后需在子模块内 commit/push,再更新根仓库子模块指针(默认用根仓库 `推送.sh`)。
 - 包分发文件:根目录下的 `typst.toml`、`lib.typ`、`web.css`、`README.md`、`LICENSE`、`img/`、`languages/`、`example/`、`template/`、`thumbnail.png`。包外的 `.github/`、`.gitcode/`、`.skills/`、`webfonts/` 不随包发布(见 typst.toml exclude)。`web.css` **必须进包**:lib.typ 在 web 模式直接 `read("web.css")`。
-- `example/` 与 `template/` 内容同构,需**双份维护**:`example/` 是仓库内示例(在 `exclude` 内,不进下载 bundle);`template/` 是 `typst init @preview/underhell` 的脚手架,**必须进包**(不在 `exclude`),且须自包含(不引用仓库外路径)。`thumbnail.png` 是模板缩略图(长边 ≥1080px),Universe 打包时自动排除,但两个发布 workflow 手工 cp 时要带上。
+- `example/` 是仓库内示例(在 `exclude` 内,不进下载 bundle),与 UnderHell 项目结构同构;`template/` 是 `typst init @preview/underhell` 的脚手架,**必须进包**(不在 `exclude`),是一份**自包含的中性多页示例**——只有 `内容/`(配置.typ + index.typ + 概述.typ + 示例.typ),不带 UnderHell 的站点构建约定(无 `页面.typ`/元素系统 CSV/导航卡片),不引用仓库外路径。`thumbnail.png` 是模板缩略图(长边 ≥1080px),Universe 打包时自动排除,但两个发布 workflow 手工 cp 时要带上。
 
 ## 中文化函数(模板/lib.typ)
 
