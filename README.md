@@ -34,13 +34,13 @@ This package targets Typst 0.15+.
 
 ## 用模板起项目 · Start from the template
 
-本包同时是模板(见 `typst.toml` 的 `[template]`)。`typst init` 会生成一个可直接编译的示例项目:根下 `配置.typ`(站点配置)与 `Makefile`,`内容/` 下是分章的正文。
-This package doubles as a template: `typst init` scaffolds a ready-to-build project — `配置.typ` and `Makefile` at the root, chapters under `内容/`.
+本包同时是模板(见 `typst.toml` 的 `[template]`)。`typst init` 会生成一个可直接编译的示例项目:根下 `配置.typ`(站点配置)、`Makefile` 与 `README.md`,`内容/` 下是分章的正文,`附件/` 下是元素系统数据,`脚本/` 下是单页入口与网页后处理。`内容/关于.typ` 用 `cmarker`(配 `mitex` 渲染公式)把 `README.md` 渲染进正文,演示导入 Markdown——图片经 `scope` 变成带题注的图表。`make web` 出多页站点:各页共用一份 `/assets/underhell.css`,定义在别页的元素自动连成跳转链接。
+This package doubles as a template: `typst init` scaffolds a ready-to-build project — `配置.typ`, `Makefile` and `README.md` at the root, chapters under `内容/`, element-system data under `附件/`, and a single-page entry plus web post-processing under `脚本/`. `内容/关于.typ` renders `README.md` via `cmarker` (with `mitex` for math), demonstrating Markdown import — images go through `scope` into captioned figures. `make web` builds a multi-page site: every page shares one `/assets/underhell.css`, and elements defined on another page become links.
 
 ```sh
 typst init @preview/underhell:0.5.0 我的设定集
 cd 我的设定集
-make all     # PDF → dist/ ; make web → HTML ; make watch → 监听自动重编
+make pdf     # 内容/ 下每个 .typ → 一份 PDF(dist/) ; make web → HTML(内容/ 里已有的 .html 原样保留) ; make watch → 监听自动重编
 ```
 
 直接调 typst 时须带 `--root .`——`内容/` 下的正文以 `../配置.typ` 引用根目录的配置。

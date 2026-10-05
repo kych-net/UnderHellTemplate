@@ -5,6 +5,12 @@
 
 #import "@preview/underhell:0.5.0": *
 
+// 元素系统数据:宽表 CSV,首列是元素 id,其后每列是一个元素系统,
+// 单元格为该元素在对应系统下的名词(留空则回退)。列名可自行增删。
+// / Element-system data: wide CSV, first column = element id, each further
+// column = one element system; empty cells fall back.
+#let 元素数据 = csv("附件/元素系统.csv")
+
 // 网页模板:入口 内容/index.typ 用 #show 套用。
 // 封面/logo 走模板默认;要加图就把图片放进本项目,再 cover: image("…") / logo: image("…")。
 // / Web template: applied by the entry point via #show.
@@ -16,4 +22,5 @@
   paper: "a4",
   品牌名: "我的世界",
   备案号: "",
+  元素系统数据: 元素数据,
 )

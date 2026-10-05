@@ -12,8 +12,9 @@ description: "地狱之下(UnderHell)的 Typst 模板开发规范:中文化函�
 
 - `模板/` 是独立 git 子模块 UnderHellTemplate,已发布至 Typst Universe(`@preview/underhell`)。
 - 改动后需在子模块内 commit/push,再更新根仓库子模块指针(默认用根仓库 `推送.sh`)。
+- 仓库根 `Makefile` 提供 `make link` / `make unlink`:把工作区软链进 Typst 包缓存(macOS `~/Library/Caches/typst/packages/preview/underhell/<版本>`,Linux `~/.cache/...`),于是 `@preview/underhell:<版本>` 直接指向开发目录,编译 `template/`、`example/` 不必先发布、也无需 `--package-path`。版本号取自 `typst.toml`,改版本后重跑一次。
 - 包分发文件:根目录下的 `typst.toml`、`lib.typ`、`web.css`、`README.md`、`LICENSE`、`img/`、`languages/`、`example/`、`template/`、`thumbnail.png`。包外的 `.github/`、`.gitcode/`、`.skills/`、`webfonts/` 不随包发布(见 typst.toml exclude)。`web.css` **必须进包**:lib.typ 在 web 模式直接 `read("web.css")`。
-- `example/` 是仓库内示例(在 `exclude` 内,不进下载 bundle),与 UnderHell 项目结构同构;`template/` 是 `typst init @preview/underhell` 的脚手架,**必须进包**(不在 `exclude`),是一份**自包含的中性多页示例**——根下 `配置.typ` + `Makefile`,`内容/` 下仅正文(index.typ + 概述.typ + 示例.typ),不带 UnderHell 的站点构建约定(无 `页面.typ`/元素系统 CSV/导航卡片),不引用仓库外路径。`thumbnail.png` 是模板缩略图(长边 ≥1080px),Universe 打包时自动排除,但两个发布 workflow 手工 cp 时要带上。
+- `example/` 是仓库内示例(在 `exclude` 内,不进下载 bundle),与 UnderHell 项目结构同构;`template/` 是 `typst init @preview/underhell` 的脚手架,**必须进包**(不在 `exclude`),是一份**自包含的中性多页示例**——根下 `配置.typ` + `Makefile` + `README.md`,`内容/` 下仅正文(index.typ + 概述.typ + 示例.typ + 关于.typ),`附件/` 下是中性元素系统数据 `元素系统.csv`(由 `配置.typ` 读取后注入)与示例插图 `示例插图.jpg`,`脚本/` 下是单页入口 `页面.typ` 与网页后处理 `web_post.sh`。根下 `README.md` 既是项目自述,也是 `内容/关于.typ` 用 `@preview/cmarker`(+`@preview/mitex` 渲染 `$…$` 公式)导入渲染的 Markdown 示例:图片经 `render(scope: (image: …))` 变成带题注的 `figure`(做法参考 tufted 的 Embedding Markdown 页)。模板项目因此多两个依赖。`make web` 是多页站点:入口 → `dist/index.html`,每章经 `页面.typ` 套模板 → `dist/<路径>/index.html`,收尾 `web_post.sh`(纯 sh + awk,不依赖 Python)把各页内联样式抽成一份 `/assets/underhell.css`、并把定义在别页的元素连成链接(相当于 UnderHell 站点后处理的精简版)。不带 UnderHell 的扫页面与导航卡片约定,不引用仓库外路径。`thumbnail.png` 是模板缩略图(长边 ≥1080px),Universe 打包时自动排除,但两个发布 workflow 手工 cp 时要带上。
 
 ## 中文化函数(模板/lib.typ)
 
@@ -85,7 +86,7 @@ description: "地狱之下(UnderHell)的 Typst 模板开发规范:中文化函�
 
 - `make web` 产单栏 HTML。样式**由模板自包含注入**:lib.typ 的 `_网页样式()` 读 `web.css`,把
   `/*UH_WEB_FONTFACE*/`、`/*UH_WEB_FONTVARS*/`、`/*UH_WEB_THEME*/`、`/*UH_WEB_READER*/` 四个锚点
-  替换为按 TOML 与参数生成的内容,再 `html.elem("style", ..)` 输出。`web_post.py` 仅做标点/路径修复、
+  替换为按 TOML 与参数生成的内容,再 `html.elem("style", ..)` 输出。`web_post.sh` 仅做标点/路径修复、
   字面 `#元素[]` 替换与 JS 注入(插件回退),不再负责样式。
 - 阅读器面板纯 CSS:`:target` 开合面板,隐藏 radio + `body:has(#uh-fs-N:checked)` 切 `--uh-zoom`(字号)
   与 `--uh-body-font`(字体)。档位 id 为 `uh-fs-0..` / `uh-ft-0..`,由 `阅读器:` 参数长度决定。

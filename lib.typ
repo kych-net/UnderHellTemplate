@@ -82,7 +82,7 @@
 
 // 网页模式样式表:读取 web.css,并把其中的锚点注释替换为按语言 TOML 与模板
 // 参数生成的内容(字体声明、字体变量、主题变量、阅读器档位规则)。模板因此自包含,
-// 不依赖 web_post.py 之类的后处理脚本。
+// 不依赖 web_post.sh 之类的后处理脚本。
 // / Web stylesheet: read web.css and fill its anchors with content generated
 // from the language TOML and template parameters, so the package is
 // self-contained (no external post-processing required).

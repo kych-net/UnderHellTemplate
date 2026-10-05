@@ -1,6 +1,6 @@
 /* 网页模式样式:仿标准 PDF 视觉(单栏、羊皮纸底色、深红标题、楷体正文)。
    本文件由 lib.typ 读取,文件里的锚点注释会被替换为按语言 TOML 与模板参数
-   生成的内容——模板包因此自包含,不依赖 web_post.py 之类的后处理脚本。
+   生成的内容——模板包因此自包含,不依赖 web_post.sh 之类的后处理脚本。
    Anchors below are filled in by lib.typ with language/theme-driven content. */
 
 /* 自托管字体声明:由 lib.typ 按语言 TOML 的 [web].fonts 生成后填入此处;
